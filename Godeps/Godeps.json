@@ -1,0 +1,90 @@
+{
+	"ImportPath": "RippleBot",
+	"GoVersion": "go1.10",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/fogleman/gg",
+			"Comment": "v1.0.0-11-ge611489",
+			"Rev": "e611489b8685808726d3f603571b763982d92f67"
+		},
+		{
+			"ImportPath": "github.com/go-telegram-bot-api/telegram-bot-api",
+			"Comment": "v4.6.2",
+			"Rev": "0e0af0c480ea98e982d5f4d45fb39577c6ab1e3e"
+		},
+		{
+			"ImportPath": "github.com/golang/freetype/raster",
+			"Comment": "release-137-ge2365df",
+			"Rev": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
+		},
+		{
+			"ImportPath": "github.com/golang/freetype/truetype",
+			"Comment": "release-137-ge2365df",
+			"Rev": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm",
+			"Comment": "v1.0-173-gb1885a6",
+			"Rev": "b1885a643b4977c9089d77eb07c0fd96591f94b8"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm/dialects/sqlite",
+			"Comment": "v1.0-173-gb1885a6",
+			"Rev": "b1885a643b4977c9089d77eb07c0fd96591f94b8"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/inflection",
+			"Rev": "1c35d901db3da928c72a72d8458480cc9ade058f"
+		},
+		{
+			"ImportPath": "github.com/json-iterator/go",
+			"Comment": "1.1.3-16-g2ddf6d7",
+			"Rev": "2ddf6d758266fcb080a4f9e054b9f292c85e6798"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.2.0-119-g05548ff",
+			"Rev": "05548ff55570cdb9ac72ff4a25a3b5e77a6fb7e5"
+		},
+		{
+			"ImportPath": "github.com/modern-go/concurrent",
+			"Comment": "1.0.3",
+			"Rev": "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
+		},
+		{
+			"ImportPath": "github.com/modern-go/reflect2",
+			"Comment": "1.0.0-9-g05fbef0",
+			"Rev": "05fbef0ca5da472bbf96c9322b84a53edc03c9fd"
+		},
+		{
+			"ImportPath": "github.com/technoweenie/multipartstreamer",
+			"Comment": "v1.0.1",
+			"Rev": "a90a01d73ae432e2611d178c18367fbaa13e0154"
+		},
+		{
+			"ImportPath": "golang.org/x/image/draw",
+			"Rev": "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+		},
+		{
+			"ImportPath": "golang.org/x/image/font",
+			"Rev": "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+		},
+		{
+			"ImportPath": "golang.org/x/image/font/basicfont",
+			"Rev": "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+		},
+		{
+			"ImportPath": "golang.org/x/image/math/f64",
+			"Rev": "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+		},
+		{
+			"ImportPath": "golang.org/x/image/math/fixed",
+			"Rev": "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
+		}
+	]
+}

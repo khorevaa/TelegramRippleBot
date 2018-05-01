@@ -5,6 +5,7 @@ import (
 	"log"
 	"io/ioutil"
 	"github.com/json-iterator/go"
+	"github.com/ChimeraCoder/anaconda"
 )
 
 var(
@@ -38,4 +39,8 @@ func sendNotifications(txs []Transaction, users []User){
 	for _, val := range users{
 		sendMessage(val.ID, text, nil)
 	}
+}
+
+func postTweet(t anaconda.Tweet){
+	sendMessage(configuration.ChannelId, t.User.Name + "(" + t.User.ScreenName + "):\n" + t.FullText, nil)
 }

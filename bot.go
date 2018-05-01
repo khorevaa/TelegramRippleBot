@@ -10,6 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"time"
+	"github.com/ChimeraCoder/anaconda"
+	"net/url"
 )
 
 var (
@@ -17,7 +19,9 @@ var (
 	configuration Config
 	db            *gorm.DB
 	phrases       map[int]string
-	cache 		  CachedStats
+	cache         CachedStats
+	sinceTwitter  = make(map[string]int64)
+	twitter       *anaconda.TwitterApi
 )
 
 func main() {
@@ -25,6 +29,7 @@ func main() {
 	initConfig()
 	initStrings()
 	initDB()
+	initTwitter()
 	initCache()
 
 	var err error
@@ -38,6 +43,7 @@ func main() {
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	go checkTransactions()
+	go checkTwitter()
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -140,6 +146,28 @@ func initDB() {
 	log.Print("Set LogMode")
 	db.AutoMigrate(&User{},&Wallet{})
 	log.Print("Migrated")
+}
+
+func initTwitter(){
+	twitter = anaconda.NewTwitterApiWithCredentials(configuration.TwitterAccessToken,
+		configuration.TwitterAccessSecret,
+		configuration.TwitterConsumerKey,
+		configuration.TwitterConsumerSecret)
+
+	v := url.Values{}
+	v.Add("exclude_replies", "true")
+	v.Add("include_rts", "false")
+	for _, val := range configuration.TwitterAccounts{
+		v.Add("screen_name", val)
+		v.Add("count", "1")
+		searchResult, err := twitter.GetUserTimeline(v)
+		if err != nil{
+			log.Print(err)
+		}
+		if len(searchResult) > 0{
+			sinceTwitter[val] = searchResult[0].Id
+		}
+	}
 }
 
 func initCache(){

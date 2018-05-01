@@ -4,8 +4,9 @@ import "time"
 
 type Config struct {
 	BotToken string
-	ChannelId int
-	Twitter  []string
+	ChannelId int64
+	TwitterAccounts  []string
+	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
 	RippleUrlBase string
 	RippleUrlParams string
 	RippleStatsUrl string

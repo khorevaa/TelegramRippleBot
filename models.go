@@ -32,19 +32,20 @@ type Wallet struct {
 }
 
 type Transaction struct{
-	Date, Hash string
-	Tx TxInfo
+	Date string `json:"date"`
+	Hash string `json:"hash"`
+	Tx TxInfo `json:"tx"`
 
 }
 
 type TxInfo struct{
 	TransactionType, Destination string
-	Amount AmountInfo
+	Amount string
 }
 
-type AmountInfo struct {
-	Value, Currency, Issuer string
-}
+//type AmountInfo struct {
+//	Value, Currency, Issuer string
+//}
 
 type CachedStats struct {
 	Time time.Time

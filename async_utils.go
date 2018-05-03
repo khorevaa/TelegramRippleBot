@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"github.com/json-iterator/go"
 	"github.com/ChimeraCoder/anaconda"
+	"strconv"
 )
 
 var(
@@ -13,7 +14,9 @@ var(
 )
 
 func getTransactions(address string, timestamp string) []Transaction {
-	resp, err := http.Get(configuration.RippleUrlBase + address + configuration.RippleUrlParams + timestamp)
+	url := configuration.RippleUrlBase + address + configuration.RippleUrlParams + timestamp
+	log.Print(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		log.Print(err)
 	}
@@ -22,9 +25,10 @@ func getTransactions(address string, timestamp string) []Transaction {
 	if err != nil{
 		log.Print(err)
 	}
+	log.Print(string(bodyBytes))
 	var txs []Transaction
 	str := json.Get(bodyBytes, "transactions").ToString()
-
+	log.Print(str)
 	json.UnmarshalFromString(str, &txs)
 
 	return txs
@@ -33,8 +37,14 @@ func getTransactions(address string, timestamp string) []Transaction {
 func sendNotifications(txs []Transaction, users []User){
 	var text string
 	for _, val := range txs{
+		amount, err := strconv.ParseInt(val.Tx.Amount, 10, 64)
+		if err != nil{
+			log.Print(err)
+		}
+		decAmount := float64(amount) / 1000000
+		decAmountStr := strconv.FormatFloat(decAmount, 'f', -1, 64)
 		text += "New transaction.\nDestination: " + val.Tx.Destination +
-			"\nAmount: " + val.Tx.Amount.Value + " " + val.Tx.Amount.Currency + "\n"
+			"\nAmount: " + decAmountStr + "XRP\n"
 	}
 	for _, val := range users{
 		sendMessage(val.ID, text, nil)

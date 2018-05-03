@@ -8,7 +8,7 @@ import (
 )
 
 func checkTransactions() {
-	t := time.Now().Format(time.RFC3339)
+	t := time.Now().UTC().Format(time.RFC3339)
 	for {
 		time.Sleep(1 * time.Minute)
 		log.Print("Started checking")
@@ -24,7 +24,7 @@ func checkTransactions() {
 				go sendNotifications(txs, users)
 			}
 		}
-		t = time.Now().Format(time.RFC3339)
+		t = time.Now().UTC().Format(time.RFC3339)
 	}
 }
 

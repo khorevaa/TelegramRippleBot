@@ -7,7 +7,8 @@ import (
 
 func sendMessage(chatId int64, text string, keyboard interface{}){
 	msg := tgbotapi.NewMessage(chatId, text)
-
+	msg.ParseMode = tgbotapi.ModeMarkdown
+	msg.DisableWebPagePreview = true
 	_, ok := keyboard.(tgbotapi.ReplyKeyboardMarkup)
 	if ok{
 		msg.ReplyMarkup = keyboard

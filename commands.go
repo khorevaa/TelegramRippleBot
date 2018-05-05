@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"time"
+	"strings"
 )
 
 func start(message *tgbotapi.Message) {
@@ -11,8 +12,13 @@ func start(message *tgbotapi.Message) {
 }
 
 func addWallet(message *tgbotapi.Message) {
-	addWalletDB(message)
-	sendMessage(message.Chat.ID, phrases[1], nil)
+	if len(strings.Fields(message.Text)) >= 2{
+		addWalletDB(message)
+		sendMessage(message.Chat.ID, phrases[1], nil)
+	}else {
+		sendMessage(message.Chat.ID, phrases[3], nil)
+	}
+
 }
 
 func removeWallet(message *tgbotapi.Message) {

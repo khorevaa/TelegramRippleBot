@@ -34,20 +34,54 @@ func getTransactions(address string, timestamp string) []Transaction {
 	return txs
 }
 
-func sendNotifications(txs []Transaction, users []User){
-	var text string
-	for _, val := range txs{
-		amount, err := strconv.ParseInt(val.Tx.Amount, 10, 64)
-		if err != nil{
-			log.Print(err)
+func sendNotifications(txs []Transaction, wallet Wallet){
+	var users []User
+	db.Model(&wallet).Related(&users, "Users")
+	for _, user := range users{
+		var text string
+		for _, tx := range txs{
+			amount, err := strconv.ParseInt(tx.Tx.Amount, 10, 64)
+			if err != nil{
+				log.Print(err)
+			}
+			decAmount := float64(amount) / 1000000
+			decAmountStr := strconv.FormatFloat(decAmount, 'f', -1, 64)
+
+			var uw UserWallet
+			db.First(&uw, "user_id = ? AND wallet_id = ?", user.ID, wallet.ID)
+			name := "your"
+			if uw.Name != ""{
+				name = "*" + uw.Name + "*"
+			}
+
+			var balance string
+			for _, node := range tx.Meta.AffectedNodes{
+				if node.Modified.Data.Account == wallet.Address{
+					balance = node.Modified.Data.Balance
+				}
+			}
+			balanceInt, err := strconv.ParseInt(balance, 10, 64)
+			if err != nil{
+				log.Print(err)
+			}
+			decBalance := float64(balanceInt) / 1000000
+			decBalanceStr := strconv.FormatFloat(decBalance, 'f', -1, 64)
+
+
+			if tx.Tx.Destination == wallet.Address{
+				text += "💰 You received *" + decAmountStr + " XRP* on " + name + " wallet\n\n" +
+					"New balance: *" + decBalanceStr + " XRP* ≈ xxx USD\n" +
+					"👉 [Track transaction](https://bithomp.com/explorer/" + wallet.Address + ")" +
+					" - [Buy/Sell XRP](" + configuration.BuySellXRP + ")\n\n"
+			}else {
+				text += "💰 You sent *" + decAmountStr + " XRP* from " + name + " wallet\n\n" +
+					"New balance: *" + decBalanceStr + " XRP* ≈ xxx USD\n" +
+					"👉 [Track transaction](https://xrpcharts.ripple.com/#/transactions/" + tx.Hash + ")" +
+					" - [Buy/Sell XRP](" + configuration.BuySellXRP + ")\n\n"
+			}
+
 		}
-		decAmount := float64(amount) / 1000000
-		decAmountStr := strconv.FormatFloat(decAmount, 'f', -1, 64)
-		text += "New transaction.\nDestination: " + val.Tx.Destination +
-			"\nAmount: " + decAmountStr + "XRP\n"
-	}
-	for _, val := range users{
-		sendMessage(val.ID, text, nil)
+		sendMessage(user.ID, text, nil)
 	}
 }
 

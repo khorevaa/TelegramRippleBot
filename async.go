@@ -17,11 +17,10 @@ func checkTransactions() {
 			log.Print("Next row")
 			var wallet Wallet
 			db.ScanRows(rows, &wallet)
-			var users []User
-			db.Model(&wallet).Related(&users, "Users")
+
 			txs := getTransactions(wallet.Address, t)
 			if len(txs) > 0 {
-				go sendNotifications(txs, users)
+				go sendNotifications(txs, wallet)
 			}
 		}
 		t = time.Now().UTC().Format(time.RFC3339)

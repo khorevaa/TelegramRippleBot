@@ -144,7 +144,7 @@ func initDB() {
 	}
 	db.LogMode(true)
 	log.Print("Set LogMode")
-	db.AutoMigrate(&User{},&Wallet{})
+	db.AutoMigrate(&User{},&Wallet{}, &UserWallet{})
 	log.Print("Migrated")
 }
 

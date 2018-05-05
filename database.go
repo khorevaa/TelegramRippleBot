@@ -19,16 +19,26 @@ func addUserIfAbsent(user *tgbotapi.User) {
 
 func addWalletDB(message *tgbotapi.Message) {
 	log.Print("Started adding wallet")
-	addr := strings.Fields(message.Text)[1]
+	var addr, name string
+	fields := strings.Fields(message.Text)
+	addr = fields[1]
+	if len(fields) == 3{
+		name = fields[2]
+	}
+
 	u := getUser(message.From.ID)
 	var wallet Wallet
 	db.Find(&wallet, "address = ?", addr)
 	if wallet.ID == 0{
 		db.Model(&u).Association("Wallets").Append(Wallet{Address:addr})
+		db.First(&wallet, "address = ?", addr)
 	}else {
 		db.Model(&u).Association("Wallets").Append(wallet)
 	}
 
+	if name != ""{
+		db.Model(&UserWallet{}).Where("user_id = ? AND wallet_id = ?", u.ID, wallet.ID).Update("name", name)
+	}
 }
 
 func removeWalletDB(message *tgbotapi.Message) {

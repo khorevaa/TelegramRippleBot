@@ -3,18 +3,19 @@ package main
 import "time"
 
 type Config struct {
-	BotToken string
-	ChannelId int64
-	TwitterAccounts  []string
+	BotToken                                                                           string
+	ChannelId                                                                          int64
+	BuySellXRP                                                                         string
+	TwitterAccounts                                                                    []string
 	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
-	RippleUrlBase string
-	RippleUrlParams string
-	RippleStatsUrl string
-	BittrexChartURL string
+	RippleUrlBase                                                                      string
+	RippleUrlParams                                                                    string
+	RippleStatsUrl                                                                     string
+	BittrexChartURL                                                                    string
 }
 
 type User struct {
-	ID        int64      `gorm:"primary_key"`
+	ID        int64    `gorm:"primary_key"`
 	FirstName string
 	LastName  string
 	UserName  string
@@ -31,25 +32,43 @@ type Wallet struct {
 	Users     []User `gorm:"many2many:user_wallets;"`
 }
 
-type Transaction struct{
-	Date string `json:"date"`
-	Hash string `json:"hash"`
-	Tx TxInfo `json:"tx"`
-
+type UserWallet struct {
+	UserID   int64 `gorm:"primary_key"`
+	WalletID int64 `gorm:"primary_key"`
+	Name     string
 }
 
-type TxInfo struct{
+type Transaction struct {
+	Date string   `json:"date"`
+	Hash string   `json:"hash"`
+	Tx   TxInfo   `json:"tx"`
+	Meta MetaInfo `json:"meta"`
+}
+
+type TxInfo struct {
 	TransactionType, Destination string
-	Amount string
+	Amount                       string
 }
 
-//type AmountInfo struct {
-//	Value, Currency, Issuer string
-//}
+type MetaInfo struct {
+	AffectedNodes []Node
+}
+
+type Node struct {
+	Modified ModifiedNode `json:"ModifiedNode"`
+}
+
+type ModifiedNode struct {
+	Data FinalFields `json:"FinalFields"`
+}
+
+type FinalFields struct {
+	Balance, Account string
+}
 
 type CachedStats struct {
-	Time time.Time
-	Stats string
+	Time    time.Time
+	Stats   string
 	PhotoId string
 }
 

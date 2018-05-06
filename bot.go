@@ -24,6 +24,18 @@ var (
 	twitter       *anaconda.TwitterApi
 
     linksKeyboard tgbotapi.InlineKeyboardMarkup
+    numberEmojis = map[int]string{
+    	1: "1⃣",
+    	2: "2️⃣",
+    	3: "3️⃣",
+    	4: "4️⃣",
+    	5: "5️⃣",
+    	6: "6️⃣",
+    	7: "7️⃣",
+    	8: "8️⃣",
+    	9: "9️⃣",
+    	10: "🔟",
+	}
 )
 
 func main() {
@@ -70,6 +82,8 @@ func main() {
 				addWallet(update.Message)
 			case "resetwallets":
 				resetWallets(update.Message)
+			case "index":
+				index(update.Message)
 			case "xrp":
 				xrp(update.Message)
 			}

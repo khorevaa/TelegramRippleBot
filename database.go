@@ -41,15 +41,16 @@ func addWalletDB(message *tgbotapi.Message) {
 	}
 }
 
-func removeWalletDB(message *tgbotapi.Message) {
+func resetWalletsDB(message *tgbotapi.Message) {
 	log.Print("Started removing wallet")
-	addr := strings.Fields(message.Text)[1]
 	u := getUser(message.From.ID)
-	var wallet Wallet
-	db.Find(&wallet, "address = ?", addr)
-	db.Model(&u).Association("Wallets").Delete(wallet)
-	if db.Model(&wallet).Association("Users").Count() == 0{
-		db.Delete(&wallet)
+	var wallets []Wallet
+	db.Model(&u).Association("Wallets").Find(&wallets)
+	db.Model(&u).Association("Wallets").Clear()
+	for _, wallet := range wallets{
+		if db.Model(&wallet).Association("Users").Count() == 0{
+			db.Delete(&wallet)
+		}
 	}
 }
 

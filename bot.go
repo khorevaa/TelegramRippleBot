@@ -68,8 +68,8 @@ func main() {
 				start(update.Message)
 			case "addwallet":
 				addWallet(update.Message)
-			case "removewallet":
-				removeWallet(update.Message)
+			case "resetwallets":
+				resetWallets(update.Message)
 			case "xrp":
 				xrp(update.Message)
 			}

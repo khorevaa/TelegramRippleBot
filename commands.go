@@ -21,8 +21,8 @@ func addWallet(message *tgbotapi.Message) {
 
 }
 
-func removeWallet(message *tgbotapi.Message) {
-	removeWalletDB(message)
+func resetWallets(message *tgbotapi.Message) {
+	resetWalletsDB(message)
 	sendMessage(message.Chat.ID, phrases[2], nil)
 }
 

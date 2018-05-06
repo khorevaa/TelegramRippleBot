@@ -45,7 +45,7 @@ func sendNotifications(txs []Transaction, wallet Wallet){
 				log.Print(err)
 			}
 			decAmount := float64(amount) / 1000000
-			decAmountStr := strconv.FormatFloat(decAmount, 'f', -1, 64)
+			decAmountStr := strconv.FormatFloat(decAmount, 'f', 0, 64)
 
 			var uw UserWallet
 			db.First(&uw, "user_id = ? AND wallet_id = ?", user.ID, wallet.ID)
@@ -65,23 +65,20 @@ func sendNotifications(txs []Transaction, wallet Wallet){
 				log.Print(err)
 			}
 			decBalance := float64(balanceInt) / 1000000
-			decBalanceStr := strconv.FormatFloat(decBalance, 'f', -1, 64)
+			decBalanceStr := strconv.FormatFloat(decBalance, 'f', 3, 64)
 
 
 			if tx.Tx.Destination == wallet.Address{
-				text += "💰 You received *" + decAmountStr + " XRP* on " + name + " wallet\n\n" +
-					"New balance: *" + decBalanceStr + " XRP* ≈ xxx USD\n" +
-					"👉 [Track transaction](https://bithomp.com/explorer/" + wallet.Address + ")" +
-					" - [Buy/Sell XRP](" + configuration.BuySellXRP + ")\n\n"
+				text = "💰 You received *" + decAmountStr + " XRP* on " + name + " wallet\n\n" +
+					"New balance:\n*" + decBalanceStr + " XRP* ≈ xxx USD\n"
 			}else {
-				text += "💰 You sent *" + decAmountStr + " XRP* from " + name + " wallet\n\n" +
-					"New balance: *" + decBalanceStr + " XRP* ≈ xxx USD\n" +
-					"👉 [Track transaction](https://xrpcharts.ripple.com/#/transactions/" + tx.Hash + ")" +
-					" - [Buy/Sell XRP](" + configuration.BuySellXRP + ")\n\n"
+				text = "💸 You sent *" + decAmountStr + " XRP* from " + name + " wallet\n\n" +
+					"New balance:\n*" + decBalanceStr + " XRP* ≈ xxx USD\n"
 			}
-
+			*linksKeyboard.InlineKeyboard[0][0].URL = "https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
+			sendMessage(user.ID, text, linksKeyboard)
 		}
-		sendMessage(user.ID, text, nil)
+
 	}
 }
 

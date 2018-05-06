@@ -22,15 +22,19 @@ var (
 	cache         CachedStats
 	sinceTwitter  = make(map[string]int64)
 	twitter       *anaconda.TwitterApi
+
+    linksKeyboard tgbotapi.InlineKeyboardMarkup
 )
 
 func main() {
 	initLog()
 	initConfig()
 	initStrings()
+	initKeyboard()
 	initDB()
 	initTwitter()
 	initCache()
+
 
 	var err error
 	bot, err = tgbotapi.NewBotAPI(configuration.BotToken)
@@ -131,6 +135,15 @@ func initStrings() {
 		log.Print("ERROR: ")
 		log.Panic(err)
 	}
+}
+
+func initKeyboard(){
+	linksKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("Transaction details", ""),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy/Sell XRP", configuration.BuySellXRP),
+		),
+	)
 }
 
 func initDB() {

@@ -12,6 +12,7 @@ type Config struct {
 	RippleUrlParams                                                                    string
 	RippleStatsUrl                                                                     string
 	BittrexChartURL                                                                    string
+	CoinMarketCapListings                                                              string
 }
 
 type User struct {
@@ -86,4 +87,10 @@ type Response struct {
 	Success bool     `json:"success"`
 	Message string   `json:"message"`
 	Result  []Candle `json:"result"`
+}
+
+type Listing struct {
+	Id     int    `json:"id"`
+	Name   string `json:"name"`
+	Symbol string `json:"symbol"`
 }

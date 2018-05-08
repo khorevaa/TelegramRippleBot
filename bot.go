@@ -12,6 +12,7 @@ import (
 	"time"
 	"github.com/ChimeraCoder/anaconda"
 	"net/url"
+	"net/http"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 	cache         CachedStats
 	sinceTwitter  = make(map[string]int64)
 	twitter       *anaconda.TwitterApi
+	listings	  []Listing
 
     linksKeyboard tgbotapi.InlineKeyboardMarkup
     numberEmojis = map[int]string{
@@ -46,6 +48,7 @@ func main() {
 	initDB()
 	initTwitter()
 	initCache()
+	initListings()
 
 
 	var err error
@@ -84,8 +87,10 @@ func main() {
 				resetWallets(update.Message)
 			case "index":
 				index(update.Message)
-			case "xrp":
-				xrp(update.Message)
+			case "xrp", "price", "p":
+				price(update.Message)
+			case "chart":
+				chart(update.Message)
 			}
 		}
 	}
@@ -200,4 +205,19 @@ func initTwitter(){
 func initCache(){
 	loadChart()
 	cache = CachedStats{Time: time.Now(), Stats:getRippleStats()}
+}
+
+func initListings(){
+	resp, err := http.Get(configuration.CoinMarketCapListings)
+	if err != nil {
+		log.Print(err)
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil{
+		log.Print(err)
+	}
+
+	str := json.Get(bodyBytes, "data").ToString()
+	json.UnmarshalFromString(str, &listings)
 }

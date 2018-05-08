@@ -19,6 +19,15 @@ func stringToInt64(s string) int64 {
 }
 
 func float64ToString(f float64) string {
-	s := strconv.FormatFloat(f, 'f', -1, 64)
+	s := strconv.FormatFloat(f, 'f', 2, 64)
 	return s
 }
+
+func float64WithSign(f float64) string{
+	if f >= 0{
+		return "+"+float64ToString(f)
+	}else {
+		return float64ToString(f)
+	}
+}
+

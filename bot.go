@@ -20,24 +20,29 @@ var (
 	configuration Config
 	db            *gorm.DB
 	phrases       map[int]string
-	cache         CachedStats
-	sinceTwitter  = make(map[string]int64)
+	cache24h      CachedStats
+	cache30d      CachedStats
+	sinceTwitter    = make(map[string]int64)
 	twitter       *anaconda.TwitterApi
-	listings	  []Listing
+	listings      []Listing
 
-    linksKeyboard tgbotapi.InlineKeyboardMarkup
-    numberEmojis = map[int]string{
-    	1: "1⃣",
-    	2: "2️⃣",
-    	3: "3️⃣",
-    	4: "4️⃣",
-    	5: "5️⃣",
-    	6: "6️⃣",
-    	7: "7️⃣",
-    	8: "8️⃣",
-    	9: "9️⃣",
-    	10: "🔟",
+	linksKeyboard tgbotapi.InlineKeyboardMarkup
+	numberEmojis  = map[int]string{
+		1:  "1⃣",
+		2:  "2️⃣",
+		3:  "3️⃣",
+		4:  "4️⃣",
+		5:  "5️⃣",
+		6:  "6️⃣",
+		7:  "7️⃣",
+		8:  "8️⃣",
+		9:  "9️⃣",
+		10: "🔟",
 	}
+	currencies = []string{"AUD", "BRL", "CAD", "CHF", "CLP", "CNY",
+		"CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR",
+		"JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PKR", "PLN", "RUB",
+		"SEK", "SGD", "THB", "TRY", "TWD", "ZAR", "USD"}
 )
 
 func main() {
@@ -49,7 +54,6 @@ func main() {
 	initTwitter()
 	initCache()
 	initListings()
-
 
 	var err error
 	bot, err = tgbotapi.NewBotAPI(configuration.BotToken)
@@ -93,6 +97,10 @@ func main() {
 				price(update.Message)
 			case "chart":
 				chart(update.Message)
+			case "stats":
+				stats(update.Message)
+			case "currency":
+				currency(update.Message)
 			}
 		}
 	}
@@ -158,7 +166,7 @@ func initStrings() {
 	}
 }
 
-func initKeyboard(){
+func initKeyboard() {
 	linksKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonURL("Transaction details", ""),
@@ -178,11 +186,11 @@ func initDB() {
 	}
 	db.LogMode(true)
 	log.Print("Set LogMode")
-	db.AutoMigrate(&User{},&Wallet{}, &UserWallet{})
+	db.AutoMigrate(&User{}, &Wallet{}, &UserWallet{})
 	log.Print("Migrated")
 }
 
-func initTwitter(){
+func initTwitter() {
 	twitter = anaconda.NewTwitterApiWithCredentials(configuration.TwitterAccessToken,
 		configuration.TwitterAccessSecret,
 		configuration.TwitterConsumerKey,
@@ -191,32 +199,33 @@ func initTwitter(){
 	v := url.Values{}
 	v.Add("exclude_replies", "true")
 	v.Add("include_rts", "false")
-	for _, val := range configuration.TwitterAccounts{
+	for _, val := range configuration.TwitterAccounts {
 		v.Add("screen_name", val)
 		v.Add("count", "1")
 		searchResult, err := twitter.GetUserTimeline(v)
-		if err != nil{
+		if err != nil {
 			log.Print(err)
 		}
-		if len(searchResult) > 0{
+		if len(searchResult) > 0 {
 			sinceTwitter[val] = searchResult[0].Id
 		}
 	}
 }
 
-func initCache(){
-	loadChart()
-	cache = CachedStats{Time: time.Now(), Stats:getRippleStats()}
+func initCache() {
+	loadChart("thirtyMin")
+	loadChart("day")
+	cache24h = CachedStats{Time: time.Now(), Stats: getRippleStats()}
 }
 
-func initListings(){
+func initListings() {
 	resp, err := http.Get(configuration.CoinMarketCapListings)
 	if err != nil {
 		log.Print(err)
 	}
 	defer resp.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil{
+	if err != nil {
 		log.Print(err)
 	}
 

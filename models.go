@@ -19,6 +19,7 @@ type User struct {
 	FirstName string
 	LastName  string
 	UserName  string
+	Currency  string
 	Wallets   []Wallet `gorm:"many2many:user_wallets;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time

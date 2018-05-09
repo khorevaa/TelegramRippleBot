@@ -34,9 +34,9 @@ var (
 	font                   = "HelveticaNeueBold.ttf"
 )
 
-func loadChart() {
+func loadChart(period string) {
 	pair := "usdt-xrp"
-	candles = getCandlesBittrex(pair)
+	candles = getCandlesBittrex(pair, period)
 	dc = gg.NewContext(int(width), int(height))
 	drawBackground()
 	//drawLogo()
@@ -44,12 +44,12 @@ func loadChart() {
 	drawValues()
 	drawFrame()
 	for i, val := range candles {
-		drawCandle(float64(i), val)
+		drawCandle(float64(i), val, period)
 	}
 	drawCurrentValue()
 	drawName(pair)
 	drawDate()
-	dc.SavePNG("chart-"+pair+".png")
+	dc.SavePNG("chart-"+period+".png")
 }
 
 func drawBackground() {
@@ -121,7 +121,7 @@ func drawFrame() {
 	dc.Stroke()
 }
 
-func drawCandle(i float64, candle Candle) {
+func drawCandle(i float64, candle Candle, period string) {
 	open := candle.Open
 	close := candle.Close
 	highest := candle.Highest
@@ -142,15 +142,24 @@ func drawCandle(i float64, candle Candle) {
 		if err = dc.LoadFontFace(font, 13); err != nil {
 			log.Print(err)
 		}
-		hours := strconv.FormatInt(int64(t1.Hour()), 10)
-		var minutes string
-		if t1.Minute() == 0 {
-			minutes = "00"
-		} else {
-			minutes = strconv.FormatInt(int64(t1.Minute()), 10)
+
+		if period == "day"{
+			day := strconv.FormatInt(int64(t1.Day()), 10)
+			month := strconv.FormatInt(int64(t1.Month()), 10)
+
+			dc.DrawStringAnchored(day+"/"+month, 7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
+		}else {
+			hours := strconv.FormatInt(int64(t1.Hour()), 10)
+			var minutes string
+			if t1.Minute() == 0 {
+				minutes = "00"
+			} else {
+				minutes = strconv.FormatInt(int64(t1.Minute()), 10)
+
+			}
+			dc.DrawStringAnchored(hours+":"+minutes, 7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
 
 		}
-		dc.DrawStringAnchored(hours+":"+minutes, 7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
 		dc.DrawLine(7+i*candleAreaWidth+candleWidth/2, chartHeight+15, 7+i*candleAreaWidth+candleWidth/2, chartHeight+19)
 		dc.SetColor(blackColor)
 		dc.SetLineWidth(1)
@@ -251,12 +260,12 @@ func drawDate() {
 
 }
 
-func getCandlesBittrex(pair string) []Candle {
+func getCandlesBittrex(pair, period string) []Candle {
 	var response Response
 	var resp *http.Response
 	var err error
 	for{
-		resp, err = http.Get(configuration.BittrexChartURL + pair)
+		resp, err = http.Get(fmt.Sprintf(configuration.BittrexChartURL, period, pair))
 		if err != nil {
 			log.Print(err)
 		}

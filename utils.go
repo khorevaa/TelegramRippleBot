@@ -3,6 +3,7 @@ package main
 import (
 	"strconv"
 	"log"
+	"strings"
 )
 
 func intToString(i int) string {
@@ -39,3 +40,11 @@ func float64WithSign(f float64) string{
 	}
 }
 
+func contains(words []string, word string) bool {
+	for _, val := range words {
+		if strings.Contains(word, val) {
+			return true
+		}
+	}
+	return false
+}

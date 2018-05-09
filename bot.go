@@ -85,6 +85,8 @@ func main() {
 				addWallet(update.Message)
 			case "resetwallets":
 				resetWallets(update.Message)
+			case "balance":
+				balance(update.Message)
 			case "index":
 				index(update.Message)
 			case "xrp", "price", "p":

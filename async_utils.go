@@ -7,6 +7,8 @@ import (
 	"github.com/json-iterator/go"
 	"github.com/ChimeraCoder/anaconda"
 	"strconv"
+	cmc "github.com/coincircle/go-coinmarketcap"
+
 )
 
 var(
@@ -69,12 +71,16 @@ func sendNotifications(txs []Transaction, wallet Wallet){
 
 
 			if tx.Tx.Destination == wallet.Address{
-				text = "💰 You received *" + decAmountStr + " XRP* on " + name + " wallet\n\n" +
-					"New balance:\n*" + decBalanceStr + " XRP* ≈ xxx USD\n"
+				text = "💰 You received *" + decAmountStr + " XRP* on "
 			}else {
-				text = "💸 You sent *" + decAmountStr + " XRP* from " + name + " wallet\n\n" +
-					"New balance:\n*" + decBalanceStr + " XRP* ≈ xxx USD\n"
+				text = "💸 You sent *" + decAmountStr + " XRP* from "
 			}
+			text +=  name + " wallet\n\n" + "New balance:\n*" + decBalanceStr + " XRP* ≈ "
+			coin, err := cmc.GetCoinData("ripple")
+			if err != nil {
+				log.Print(err)
+			}
+			text += float64ToString(coin.PriceUSD * decBalance) + " USD\n"
 			*linksKeyboard.InlineKeyboard[0][0].URL = "https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
 			sendMessage(user.ID, text, linksKeyboard)
 		}

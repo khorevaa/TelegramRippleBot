@@ -4,25 +4,18 @@ import (
 	"net/http"
 	"log"
 	"io/ioutil"
+	cmc "github.com/coincircle/go-coinmarketcap"
 	"strings"
 )
 
 func getRippleStats() string {
-	resp, err := http.Get(configuration.RippleStatsUrl)
-	if err != nil {
+	coin, err := cmc.GetCoinData("Ripple")
+	if err != nil{
 		log.Print(err)
 	}
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Print(err)
-	}
-
-	price := json.Get(bodyBytes, 0, "price_usd").ToString()
-	volume := json.Get(bodyBytes, 0, "24h_volume_usd").ToString()
-	cap := json.Get(bodyBytes, 0, "market_cap_usd").ToString()
-
-	return "Price: " + price + " USD\nVolume: " + volume + " USD\nCapitalization: " + cap + " USD"
+	return "Price: " + float64ToString(coin.PriceUSD)+ " USD\nVolume: "+
+		float64ToString(coin.USD24HVolume) + " USD\nCapitalization: " +
+		float64ToString(coin.MarketCapUSD) + " USD"
 }
 
 func checkAddress(a string) bool {
@@ -43,4 +36,19 @@ func getCurrency(name string) string {
 		}
 	}
 	return ""
+}
+
+func getBalance(address string) float64{
+	resp, err := http.Get(configuration.RippleUrlBase + address + "/balances")
+	if err != nil {
+		log.Print(err)
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Print(err)
+	}
+
+	xrp := json.Get(bodyBytes, "balances", 0, "value").ToString()
+	return stringToFloat64(xrp)
 }

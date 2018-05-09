@@ -10,7 +10,6 @@ type Config struct {
 	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
 	RippleUrlBase                                                                      string
 	RippleUrlParams                                                                    string
-	RippleStatsUrl                                                                     string
 	BittrexChartURL                                                                    string
 	CoinMarketCapListings                                                              string
 }

@@ -40,6 +40,34 @@ func resetWallets(message *tgbotapi.Message) {
 	sendMessage(message.Chat.ID, phrases[2], nil)
 }
 
+func balance(message *tgbotapi.Message){
+	var wallets []Wallet
+	user := getUser(message.From.ID)
+	db.Model(&user).Association("Wallets").Find(&wallets)
+	balances := make(map[string]float64)
+	var sum float64
+	for _, wallet := range wallets{
+		var uw UserWallet
+		db.Find(&uw, "user_id = ? AND wallet_id = ?", user.ID, wallet.ID)
+		bal := getBalance(wallet.Address)
+		sum += bal
+		balances[uw.Name] = bal
+	}
+	text := "🏦 You currently hold *" + float64ToString(sum) + " XRP* on your wallets\n\n"
+	for name, bal := range balances{
+		text += "*"+name + "*: " + float64ToString(bal) + " XRP\n"
+	}
+	text += "\nEstimated worth:\n"
+	coin, err := cmc.GetCoinData("ripple")
+	if err != nil {
+		log.Print(err)
+	}
+	text += float64ToString(coin.PriceUSD * sum) + " USD\n"
+	text += "👉 [Buy/Sell XRP]("+configuration.BuySellXRP+")" + " - XRP /stats"
+
+	sendMessage(message.Chat.ID, text, nil)
+}
+
 func index(message *tgbotapi.Message) {
 	var text string
 	coins, err := cmc.GetAllCoinData(10)

@@ -18,6 +18,14 @@ func stringToInt64(s string) int64 {
 	return i
 }
 
+func stringToFloat64(s string) float64 {
+	i, err := strconv.ParseFloat(s, 64)
+	if err != nil{
+		log.Print(err)
+	}
+	return i
+}
+
 func float64ToString(f float64) string {
 	s := strconv.FormatFloat(f, 'f', 2, 64)
 	return s

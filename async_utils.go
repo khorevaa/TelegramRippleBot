@@ -91,3 +91,13 @@ func sendNotifications(txs []Transaction, wallet Wallet){
 func postTweet(t anaconda.Tweet){
 	sendMessage(configuration.ChannelId, t.User.Name + "(" + t.User.ScreenName + "):\n" + t.FullText, nil)
 }
+
+func shiftArray(arr *[]float64){
+	for i := range *arr{
+		if i+1 <= len(*arr)-1{
+			(*arr)[i] = (*arr)[i+1]
+		}else {
+			(*arr)[i] = 0
+		}
+	}
+}

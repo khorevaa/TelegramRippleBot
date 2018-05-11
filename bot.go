@@ -55,6 +55,7 @@ func main() {
 	initCache()
 	initListings()
 
+
 	var err error
 	bot, err = tgbotapi.NewBotAPI(configuration.BotToken)
 	if err != nil {
@@ -67,6 +68,8 @@ func main() {
 
 	go checkTransactions()
 	go checkTwitter()
+	go checkEverydayPrice()
+	go checkPeriodsPrice()
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60

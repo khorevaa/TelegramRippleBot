@@ -94,3 +94,12 @@ type Listing struct {
 	Name   string `json:"name"`
 	Symbol string `json:"symbol"`
 }
+
+type Prices struct {
+	LastCheck	string `json:"lastCheck"`
+	Yesterday   float64   `json:"yesterday"`
+	AllTime     float64   `json:"allTime"`
+	Week        []float64 `json:"7d"`
+	Month       []float64 `json:"30d"`
+	ThreeMonths []float64 `json:"3m"`
+}

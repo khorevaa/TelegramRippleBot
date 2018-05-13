@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"time"
+
+	"github.com/go-telegram-bot-api/telegram-bot-api"
+)
 
 type Config struct {
 	BotToken                                                                           string
@@ -12,6 +16,7 @@ type Config struct {
 	RippleUrlParams                                                                    string
 	BittrexChartURL                                                                    string
 	CoinMarketCapListings                                                              string
+	AdminIds                                                                           []int64
 }
 
 type User struct {
@@ -96,10 +101,23 @@ type Listing struct {
 }
 
 type Prices struct {
-	LastCheck	string `json:"lastCheck"`
-	Yesterday   float64   `json:"yesterday"`
+	LastCheck   string    `json:"LastCheck"`
+	Yesterday   float64   `json:"Yesterday"`
+	Highs Periods`json:"Highs"`
+	Lows Periods`json:"Lows"`
+
+}
+
+type Periods struct{
 	AllTime     float64   `json:"allTime"`
 	Week        []float64 `json:"7d"`
 	Month       []float64 `json:"30d"`
 	ThreeMonths []float64 `json:"3m"`
+}
+
+type PendingPost struct {
+	Message tgbotapi.Message
+	PostTime time.Time
+	//IsRepeating bool
+	DelayHours float64
 }

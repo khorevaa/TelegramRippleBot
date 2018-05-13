@@ -229,3 +229,11 @@ func currency(message *tgbotapi.Message){
 	db.Save(&user)
 	sendMessage(message.Chat.ID, phrases[6], nil)
 }
+
+func newPost(message *tgbotapi.Message) {
+	if !containsInt64(configuration.AdminIds, message.Chat.ID){
+		return
+	}
+	currState = "waitingForPost"
+	sendMessage(message.Chat.ID, phrases[9], nil)
+}

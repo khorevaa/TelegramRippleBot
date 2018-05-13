@@ -22,9 +22,11 @@ var (
 	phrases       map[int]string
 	cache24h      CachedStats
 	cache30d      CachedStats
-	sinceTwitter    = make(map[string]int64)
+	sinceTwitter  = make(map[string]int64)
 	twitter       *anaconda.TwitterApi
 	listings      []Listing
+	currState     string
+	currPost 	  tgbotapi.Message
 
 	linksKeyboard tgbotapi.InlineKeyboardMarkup
 	numberEmojis  = map[int]string{
@@ -55,7 +57,6 @@ func main() {
 	initCache()
 	initListings()
 
-
 	var err error
 	bot, err = tgbotapi.NewBotAPI(configuration.BotToken)
 	if err != nil {
@@ -70,6 +71,7 @@ func main() {
 	go checkTwitter()
 	go checkEverydayPrice()
 	go checkPeriodsPrice()
+	go weeklyRoundUp()
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -104,6 +106,23 @@ func main() {
 				stats(update.Message)
 			case "currency":
 				currency(update.Message)
+			case "newpost":
+				newPost(update.Message)
+			//case "editpost":
+			//	editPost(update.Message)
+			//case "deletepost":
+			//	deletePost(update.Message)
+			//case "pendingposts":
+			//	pendingPosts(update.Message)
+			//case "addscheduling":
+			//	addScheduling(update.Message)
+			}
+		} else if containsInt64(configuration.AdminIds, update.Message.Chat.ID) {
+			switch currState {
+			case "waitingForPost":
+				rememberPost(update.Message)
+			case "waitingForDelay":
+				rememberDelay(update.Message)
 			}
 		}
 	}

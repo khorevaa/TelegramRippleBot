@@ -48,3 +48,12 @@ func contains(words []string, word string) bool {
 	}
 	return false
 }
+
+func containsInt64(s []int64, e int64) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}

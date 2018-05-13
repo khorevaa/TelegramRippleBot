@@ -134,23 +134,23 @@ func checkPeriodsPrice() {
 		monthHigh := true
 		weekHigh := true
 
-		if old.AllTime > price {
+		if old.Highs.AllTime > price {
 			allTimeHigh = false
 		}
 		if allTimeHigh == false {
-			for _, val := range old.ThreeMonths {
+			for _, val := range old.Highs.ThreeMonths {
 				if val > price {
 					threeMonthsHigh = false
 				}
 			}
 			if threeMonthsHigh == false {
-				for _, val := range old.Month {
+				for _, val := range old.Highs.Month {
 					if val > price {
 						monthHigh = false
 					}
 				}
 				if monthHigh == false {
-					for _, val := range old.Week {
+					for _, val := range old.Highs.Week {
 						if val > price {
 							weekHigh = false
 						}
@@ -167,13 +167,11 @@ func checkPeriodsPrice() {
 				//post 3m
 				text += "3m"
 			}
-		}else{
+		} else {
 			//post allTime
 			text += "all-time"
 		}
 		text += fmt.Sprintf(" high @ %s USD", float64ToString(price))
-
-
 
 		if !allTimeHigh && !threeMonthsHigh && !monthHigh && !weekHigh {
 			//low check
@@ -181,20 +179,20 @@ func checkPeriodsPrice() {
 			threeMonthsLow := true
 			monthLow := true
 			weekLow := true
-			for _, val := range old.ThreeMonths {
+			for _, val := range old.Lows.ThreeMonths {
 				if val < price {
 					threeMonthsLow = false
 				}
 			}
 
 			if threeMonthsLow == false {
-				for _, val := range old.Month {
+				for _, val := range old.Lows.Month {
 					if val < price {
 						monthLow = false
 					}
 				}
 				if monthLow == false {
-					for _, val := range old.Week {
+					for _, val := range old.Lows.Week {
 						if val < price {
 							weekLow = false
 						}
@@ -211,33 +209,52 @@ func checkPeriodsPrice() {
 				//post 3m
 				text += "3m"
 			}
-			text += fmt.Sprintf(" low @ %s USD", float64ToString(price))
+			if weekLow == false{
+				text = ""
+			}else {
+				text += fmt.Sprintf(" low @ %s USD", float64ToString(price))
+			}
 		}
-		sendMessage(configuration.ChannelId, text, nil)
+		if text != ""{
+			sendMessage(configuration.ChannelId, text, nil)
+		}
 
-		if old.AllTime < price{
-			old.AllTime = price
+		if old.Highs.AllTime < price {
+			old.Highs.AllTime = price
 		}
 		// если сменился день
 		oldTime, err := time.Parse(time.RFC822, old.LastCheck)
-		if err != nil{
+		if err != nil {
 			log.Print(err)
 		}
-		if oldTime.Day() != time.Now().Day(){
-			shiftArray(&old.ThreeMonths)
-			shiftArray(&old.Month)
-			shiftArray(&old.Week)
+		if oldTime.Day() != time.Now().Day() {
+			shiftArray(&old.Highs.ThreeMonths)
+			shiftArray(&old.Highs.Month)
+			shiftArray(&old.Highs.Week)
+			shiftArray(&old.Lows.ThreeMonths)
+			shiftArray(&old.Lows.Month)
+			shiftArray(&old.Lows.Week)
 		}
 		old.LastCheck = time.Now().Format(time.RFC822)
 
-		if old.ThreeMonths[len(old.ThreeMonths)-1] < price{
-			old.ThreeMonths[len(old.ThreeMonths)-1] = price
+		if old.Highs.ThreeMonths[len(old.Highs.ThreeMonths)-1] < price {
+			old.Highs.ThreeMonths[len(old.Highs.ThreeMonths)-1] = price
 		}
-		if old.Month[len(old.Month)-1] < price{
-			old.Month[len(old.Month)-1] = price
+		if old.Highs.Month[len(old.Highs.Month)-1] < price {
+			old.Highs.Month[len(old.Highs.Month)-1] = price
 		}
-		if old.Week[len(old.Week)-1] < price{
-			old.Week[len(old.Week)-1] = price
+		if old.Highs.Week[len(old.Highs.Week)-1] < price {
+			old.Highs.Week[len(old.Highs.Week)-1] = price
+		}
+
+		if old.Lows.ThreeMonths[len(old.Lows.ThreeMonths)-1] > price {
+			old.Lows.ThreeMonths[len(old.Lows.ThreeMonths)-1] = price
+		}
+		if old.Lows.Month[len(old.Lows.Month)-1] > price {
+			old.Lows.Month[len(old.Lows.Month)-1] = price
+		}
+		if old.Lows.Week[len(old.Lows.Week)-1] > price {
+			old.Lows.Week[len(old.Lows.Week)-1] = price
 		}
 
 		dataJson, err := json.Marshal(&old)
@@ -246,5 +263,36 @@ func checkPeriodsPrice() {
 		}
 		ioutil.WriteFile("prices.json", dataJson, 0644)
 		time.Sleep(15 * time.Minute)
+	}
+}
+
+func weeklyRoundUp() {
+	for {
+		//if time.Now().Weekday() == time.Sunday && time.Now().Hour() == 10{
+		if time.Now().Weekday() == time.Friday && time.Now().Hour() == 21{
+			coin, err := cmc.GetCoinData("ripple")
+			if err != nil {
+				log.Print(err)
+			}
+			market, err := cmc.GetGlobalMarketData()
+			if err != nil {
+				log.Print(err)
+			}
+
+			text := "Weekly roundup:\nXRP's current price is %s USD with a total " +
+				"market cap of %sbn USD. XRP market share " +
+				"went to %s%% and BTC dominance to" +
+				"%s%%. 👉 Discuss @XRPchats"
+
+			share := coin.MarketCapUSD * 100 / market.TotalMarketCapUSD
+
+			text = fmt.Sprintf(text,
+				float64ToString(coin.PriceUSD),
+				float64ToString(coin.MarketCapUSD/1000000000),
+				float64ToString(share),
+				float64ToString(market.BitcoinPercentageOfMarketCap))
+			sendMessage(configuration.ChannelId, text, nil)
+		}
+		time.Sleep(1 * time.Hour)
 	}
 }

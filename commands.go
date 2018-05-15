@@ -7,6 +7,9 @@ import (
 	"log"
 	"fmt"
 	"time"
+	"os"
+	"io/ioutil"
+	"bytes"
 )
 
 func start(message *tgbotapi.Message) {
@@ -236,4 +239,58 @@ func newPost(message *tgbotapi.Message) {
 	}
 	currState = "waitingForPost"
 	sendMessage(message.Chat.ID, phrases[9], nil)
+}
+
+func deletePost(message *tgbotapi.Message) {
+	file, err := os.Open("posts.json")
+	if err != nil {
+		log.Print(err)
+	}
+
+	body, err := ioutil.ReadAll(file)
+	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
+	reader := bytes.NewReader(body)
+	decoder := json.NewDecoder(reader)
+
+	var posts []PendingPost
+	err = decoder.Decode(&posts)
+	if err != nil {
+		log.Print(err)
+	}
+	fields := strings.Fields(message.Text)
+	ind := stringToInt64(fields[1])
+	for i := range posts{
+		if int64(i) == ind - 1{
+			posts = append(posts[:i], posts[i+1:]...)
+			break
+		}
+	}
+	dataJson, err := json.Marshal(&posts)
+	if err != nil {
+		log.Print(err)
+	}
+	ioutil.WriteFile("posts.json", dataJson, 0644)
+}
+
+func pendingPosts(message *tgbotapi.Message) {
+	file, err := os.Open("posts.json")
+	if err != nil {
+		log.Print(err)
+	}
+
+	body, err := ioutil.ReadAll(file)
+	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
+	reader := bytes.NewReader(body)
+	decoder := json.NewDecoder(reader)
+
+	var posts []PendingPost
+	err = decoder.Decode(&posts)
+	if err != nil {
+		log.Print(err)
+	}
+	var text string
+	for i, post := range posts{
+		text += intToString(i+1) + ". " + post.Message.Text + "\n"
+	}
+	sendMessage(message.Chat.ID, text, nil)
 }

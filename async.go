@@ -10,6 +10,8 @@ import (
 	cmc "github.com/coincircle/go-coinmarketcap"
 
 	"fmt"
+	"bytes"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func checkTransactions() {
@@ -295,4 +297,78 @@ func weeklyRoundUp() {
 		}
 		time.Sleep(1 * time.Hour)
 	}
+}
+
+func checkPosts(){
+	for{
+		time.Sleep(1*time.Minute)
+		file, err := os.Open("posts.json")
+		if err != nil {
+			log.Print(err)
+		}
+
+		body, err := ioutil.ReadAll(file)
+		body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
+		reader := bytes.NewReader(body)
+		decoder := json.NewDecoder(reader)
+
+		var posts []PendingPost
+		err = decoder.Decode(&posts)
+		if err != nil {
+			log.Print(err)
+		}
+		sent := false
+		for i, post := range posts {
+			t1 := time.Now().UTC()
+			t2 := post.PostTime.UTC()
+			d := t1.Sub(t2).Seconds()
+			if  d > 0{
+				sent = true
+				sendPost(&posts[i])
+			}
+		}
+		file.Close()
+		if sent{
+			dataJson, err := json.Marshal(&posts)
+			if err != nil {
+				log.Print(err)
+			}
+			ioutil.WriteFile("posts.json", dataJson, 0644)
+		}
+	}
+}
+
+func sendPost(p *PendingPost){
+	var msg tgbotapi.Chattable
+	if p.Message.Text != ""{
+		msg = tgbotapi.NewMessage(configuration.ChannelId, p.Message.Text)
+	}else if p.Message.Video != nil{
+		msg = tgbotapi.NewVideoShare(configuration.ChannelId, p.Message.Video.FileID)
+		msg2 := msg.(tgbotapi.VideoConfig)
+		msg2.Caption = p.Message.Caption
+		msg = msg2
+	}else if p.Message.Sticker != nil{
+		msg = tgbotapi.NewStickerShare(configuration.ChannelId, p.Message.Sticker.FileID)
+	}else if p.Message.Photo != nil{
+		msg = tgbotapi.NewPhotoShare(configuration.ChannelId, (*p.Message.Photo)[0].FileID)
+		msg2 := msg.(tgbotapi.PhotoConfig)
+		msg2.Caption = p.Message.Caption
+		msg = msg2
+	}else if p.Message.Document != nil{
+		msg = tgbotapi.NewDocumentShare(configuration.ChannelId, p.Message.Document.FileID)
+		msg2 := msg.(tgbotapi.DocumentConfig)
+		msg2.Caption = p.Message.Caption
+		msg = msg2
+	}else if p.Message.Audio != nil{
+		msg = tgbotapi.NewAudioShare(configuration.ChannelId, p.Message.Audio.FileID)
+		msg2 := msg.(tgbotapi.AudioConfig)
+		msg2.Caption = p.Message.Caption
+		msg = msg2
+	}else if p.Message.VideoNote != nil{
+		msg = tgbotapi.NewVideoNoteShare(configuration.ChannelId, p.Message.VideoNote.Length, p.Message.VideoNote.FileID)
+	}else if p.Message.Voice != nil{
+		msg = tgbotapi.NewVoiceShare(configuration.ChannelId, p.Message.Voice.FileID)
+	}
+	bot.Send(msg)
+	p.PostTime = p.PostTime.Add(time.Duration(p.DelayHours)*time.Hour)
 }

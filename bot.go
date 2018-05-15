@@ -72,6 +72,7 @@ func main() {
 	go checkEverydayPrice()
 	go checkPeriodsPrice()
 	go weeklyRoundUp()
+	go checkPosts()
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -108,14 +109,10 @@ func main() {
 				currency(update.Message)
 			case "newpost":
 				newPost(update.Message)
-			//case "editpost":
-			//	editPost(update.Message)
-			//case "deletepost":
-			//	deletePost(update.Message)
-			//case "pendingposts":
-			//	pendingPosts(update.Message)
-			//case "addscheduling":
-			//	addScheduling(update.Message)
+			case "deletepost":
+				deletePost(update.Message)
+			case "pendingposts":
+				pendingPosts(update.Message)
 			}
 		} else if containsInt64(configuration.AdminIds, update.Message.Chat.ID) {
 			switch currState {

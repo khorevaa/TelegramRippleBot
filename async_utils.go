@@ -9,6 +9,7 @@ import (
 	"strconv"
 	cmc "github.com/coincircle/go-coinmarketcap"
 
+	"net/url"
 )
 
 var(
@@ -99,5 +100,12 @@ func shiftArray(arr *[]float64){
 		}else {
 			(*arr)[i] = 0
 		}
+	}
+}
+
+func tweet(text string){
+	_, err := twitter.PostTweet(text, url.Values{})
+	if err != nil {
+		log.Print(err)
 	}
 }

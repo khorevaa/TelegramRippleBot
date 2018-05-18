@@ -67,7 +67,7 @@ func checkTwitter() {
 
 func checkEverydayPrice() {
 	for {
-		if time.Now().Hour() == 10 && time.Now().Minute() == 0 {
+		if time.Now().Hour() == 18  {
 			var old Prices
 			file, err := os.OpenFile("prices.json", os.O_RDWR, 0644)
 			if err != nil {
@@ -96,6 +96,7 @@ func checkEverydayPrice() {
 			text = fmt.Sprintf(text, float64WithSign(diff), float64ToString(price))
 
 			sendMessage(configuration.ChannelId, text, nil)
+			tweet(text)
 			old.Yesterday = price
 			dataJson, err := json.Marshal(&old)
 			if err != nil {
@@ -219,6 +220,7 @@ func checkPeriodsPrice() {
 		}
 		if text != ""{
 			sendMessage(configuration.ChannelId, text, nil)
+			tweet(text)
 		}
 
 		if old.Highs.AllTime < price {

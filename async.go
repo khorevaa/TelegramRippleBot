@@ -4,13 +4,8 @@ import (
 	"log"
 	"time"
 	"net/url"
-	"strconv"
-	"io/ioutil"
-	"os"
 	cmc "github.com/coincircle/go-coinmarketcap"
-
 	"fmt"
-	"bytes"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -21,10 +16,8 @@ func checkTransactions() {
 		log.Print("Started checking")
 		rows, _ := db.Table("wallets").Rows()
 		for rows.Next() {
-			log.Print("Next row")
 			var wallet Wallet
 			db.ScanRows(rows, &wallet)
-
 			txs := getTransactions(wallet.Address, t)
 			if len(txs) > 0 {
 				go sendNotifications(txs, wallet)
@@ -39,14 +32,14 @@ func checkTwitter() {
 		v := url.Values{}
 		v.Add("exclude_replies", "true")
 		v.Add("include_rts", "false")
-		for _, val := range configuration.TwitterAccounts {
+		for _, val := range config.TwitterAccounts {
 			v.Add("screen_name", val)
 			var since string
 			if sinceTwitter[val] == 0 {
 				sinceTwitter[val] = 1
 				since = "1"
 			} else {
-				since = strconv.FormatInt(sinceTwitter[val], 10)
+				since = int64ToString(sinceTwitter[val])
 			}
 			v.Add("since_id", since)
 			searchResult, err := twitter.GetUserTimeline(v)
@@ -60,25 +53,15 @@ func checkTwitter() {
 				sinceTwitter[val] = searchResult[0].Id
 			}
 		}
-
 		time.Sleep(1 * time.Minute)
 	}
 }
 
 func checkEverydayPrice() {
 	for {
-		if time.Now().Hour() == 18  {
+		if time.Now().Hour() == 10 && time.Now().Minute() == 0 {
 			var old Prices
-			file, err := os.OpenFile("prices.json", os.O_RDWR, 0644)
-			if err != nil {
-				log.Print(err)
-			}
-			decoder := json.NewDecoder(file)
-			err = decoder.Decode(&old)
-			if err != nil {
-				log.Print(err)
-			}
-			file.Close()
+			readJson(&old, "prices.json")
 
 			price, err := cmc.GetCoinPriceUSD("ripple")
 			if err != nil {
@@ -95,14 +78,10 @@ func checkEverydayPrice() {
 
 			text = fmt.Sprintf(text, float64WithSign(diff), float64ToString(price))
 
-			sendMessage(configuration.ChannelId, text, nil)
+			sendMessage(config.ChannelId, text, nil)
 			tweet(text)
 			old.Yesterday = price
-			dataJson, err := json.Marshal(&old)
-			if err != nil {
-				log.Print(err)
-			}
-			ioutil.WriteFile("prices.json", dataJson, 0644)
+			writeJson(&old, "prices.json")
 			time.Sleep(24 * time.Hour)
 		} else {
 			time.Sleep(1 * time.Minute)
@@ -114,16 +93,7 @@ func checkEverydayPrice() {
 func checkPeriodsPrice() {
 	for {
 		var old Prices
-		file, err := os.OpenFile("prices.json", os.O_RDWR, 0644)
-		if err != nil {
-			log.Print(err)
-		}
-		decoder := json.NewDecoder(file)
-		err = decoder.Decode(&old)
-		if err != nil {
-			log.Print(err)
-		}
-		file.Close()
+		readJson(&old, "prices.json")
 
 		price, err := cmc.GetCoinPriceUSD("ripple")
 		if err != nil {
@@ -131,7 +101,7 @@ func checkPeriodsPrice() {
 		}
 
 		text := "🚀 XRP on a new "
-		//high check
+		//HIGHS CHECK
 		allTimeHigh := true
 		threeMonthsHigh := true
 		monthHigh := true
@@ -177,7 +147,7 @@ func checkPeriodsPrice() {
 		text += fmt.Sprintf(" high @ %s USD", float64ToString(price))
 
 		if !allTimeHigh && !threeMonthsHigh && !monthHigh && !weekHigh {
-			//low check
+			//LOWS CHECK
 			text = "📉 XRP on a new "
 			threeMonthsLow := true
 			monthLow := true
@@ -212,21 +182,21 @@ func checkPeriodsPrice() {
 				//post 3m
 				text += "3m"
 			}
-			if weekLow == false{
+			if weekLow == false {
 				text = ""
-			}else {
+			} else {
 				text += fmt.Sprintf(" low @ %s USD", float64ToString(price))
 			}
 		}
-		if text != ""{
-			sendMessage(configuration.ChannelId, text, nil)
+		if text != "" {
+			sendMessage(config.ChannelId, text, nil)
 			tweet(text)
 		}
 
 		if old.Highs.AllTime < price {
 			old.Highs.AllTime = price
 		}
-		// если сменился день
+		//if day changed
 		oldTime, err := time.Parse(time.RFC822, old.LastCheck)
 		if err != nil {
 			log.Print(err)
@@ -261,19 +231,14 @@ func checkPeriodsPrice() {
 			old.Lows.Week[len(old.Lows.Week)-1] = price
 		}
 
-		dataJson, err := json.Marshal(&old)
-		if err != nil {
-			log.Print(err)
-		}
-		ioutil.WriteFile("prices.json", dataJson, 0644)
+		writeJson(&old, "prices.json")
 		time.Sleep(15 * time.Minute)
 	}
 }
 
 func weeklyRoundUp() {
 	for {
-		//if time.Now().Weekday() == time.Sunday && time.Now().Hour() == 10{
-		if time.Now().Weekday() == time.Friday && time.Now().Hour() == 21{
+		if time.Now().Weekday() == time.Sunday && time.Now().Hour() == 10 {
 			coin, err := cmc.GetCoinData("ripple")
 			if err != nil {
 				log.Print(err)
@@ -295,82 +260,65 @@ func weeklyRoundUp() {
 				float64ToString(coin.MarketCapUSD/1000000000),
 				float64ToString(share),
 				float64ToString(market.BitcoinPercentageOfMarketCap))
-			sendMessage(configuration.ChannelId, text, nil)
+			sendMessage(config.ChannelId, text, nil)
 		}
 		time.Sleep(1 * time.Hour)
 	}
 }
 
-func checkPosts(){
-	for{
-		time.Sleep(1*time.Minute)
-		file, err := os.Open("posts.json")
-		if err != nil {
-			log.Print(err)
-		}
-
-		body, err := ioutil.ReadAll(file)
-		body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
-		reader := bytes.NewReader(body)
-		decoder := json.NewDecoder(reader)
-
+func checkPosts() {
+	for {
+		time.Sleep(1 * time.Minute)
 		var posts []PendingPost
-		err = decoder.Decode(&posts)
-		if err != nil {
-			log.Print(err)
-		}
+		readJson(&posts, "posts.json")
+
 		sent := false
 		for i, post := range posts {
 			t1 := time.Now().UTC()
 			t2 := post.PostTime.UTC()
 			d := t1.Sub(t2).Seconds()
-			if  d > 0{
+			if d > 0 {
 				sent = true
 				sendPost(&posts[i])
 			}
 		}
-		file.Close()
-		if sent{
-			dataJson, err := json.Marshal(&posts)
-			if err != nil {
-				log.Print(err)
-			}
-			ioutil.WriteFile("posts.json", dataJson, 0644)
+		if sent {
+			writeJson(&posts, "posts.json")
 		}
 	}
 }
 
-func sendPost(p *PendingPost){
+func sendPost(p *PendingPost) {
 	var msg tgbotapi.Chattable
-	if p.Message.Text != ""{
-		msg = tgbotapi.NewMessage(configuration.ChannelId, p.Message.Text)
-	}else if p.Message.Video != nil{
-		msg = tgbotapi.NewVideoShare(configuration.ChannelId, p.Message.Video.FileID)
+	if p.Message.Text != "" {
+		msg = tgbotapi.NewMessage(config.ChannelId, p.Message.Text)
+	} else if p.Message.Video != nil {
+		msg = tgbotapi.NewVideoShare(config.ChannelId, p.Message.Video.FileID)
 		msg2 := msg.(tgbotapi.VideoConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
-	}else if p.Message.Sticker != nil{
-		msg = tgbotapi.NewStickerShare(configuration.ChannelId, p.Message.Sticker.FileID)
-	}else if p.Message.Photo != nil{
-		msg = tgbotapi.NewPhotoShare(configuration.ChannelId, (*p.Message.Photo)[0].FileID)
+	} else if p.Message.Sticker != nil {
+		msg = tgbotapi.NewStickerShare(config.ChannelId, p.Message.Sticker.FileID)
+	} else if p.Message.Photo != nil {
+		msg = tgbotapi.NewPhotoShare(config.ChannelId, (*p.Message.Photo)[0].FileID)
 		msg2 := msg.(tgbotapi.PhotoConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
-	}else if p.Message.Document != nil{
-		msg = tgbotapi.NewDocumentShare(configuration.ChannelId, p.Message.Document.FileID)
+	} else if p.Message.Document != nil {
+		msg = tgbotapi.NewDocumentShare(config.ChannelId, p.Message.Document.FileID)
 		msg2 := msg.(tgbotapi.DocumentConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
-	}else if p.Message.Audio != nil{
-		msg = tgbotapi.NewAudioShare(configuration.ChannelId, p.Message.Audio.FileID)
+	} else if p.Message.Audio != nil {
+		msg = tgbotapi.NewAudioShare(config.ChannelId, p.Message.Audio.FileID)
 		msg2 := msg.(tgbotapi.AudioConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
-	}else if p.Message.VideoNote != nil{
-		msg = tgbotapi.NewVideoNoteShare(configuration.ChannelId, p.Message.VideoNote.Length, p.Message.VideoNote.FileID)
-	}else if p.Message.Voice != nil{
-		msg = tgbotapi.NewVoiceShare(configuration.ChannelId, p.Message.Voice.FileID)
+	} else if p.Message.VideoNote != nil {
+		msg = tgbotapi.NewVideoNoteShare(config.ChannelId, p.Message.VideoNote.Length, p.Message.VideoNote.FileID)
+	} else if p.Message.Voice != nil {
+		msg = tgbotapi.NewVoiceShare(config.ChannelId, p.Message.Voice.FileID)
 	}
 	bot.Send(msg)
-	p.PostTime = p.PostTime.Add(time.Duration(p.DelayHours)*time.Hour)
+	p.PostTime = p.PostTime.Add(time.Duration(p.DelayHours) * time.Hour)
 }

@@ -5,18 +5,18 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func sendMessage(chatId int64, text string, keyboard interface{}){
+func sendMessage(chatId int64, text string, keyboard interface{}) {
 	msg := tgbotapi.NewMessage(chatId, text)
 	msg.ParseMode = tgbotapi.ModeMarkdown
 	msg.DisableWebPagePreview = true
 	_, ok := keyboard.(tgbotapi.ReplyKeyboardMarkup)
-	if ok{
+	if ok {
 		msg.ReplyMarkup = keyboard
-	}else{
+	} else {
 		_, ok = keyboard.(tgbotapi.InlineKeyboardMarkup)
-		if ok{
+		if ok {
 			msg.ReplyMarkup = &keyboard
-		}else {
+		} else {
 			msg.ReplyMarkup = nil
 		}
 	}
@@ -38,7 +38,7 @@ func sendPhoto(photo tgbotapi.PhotoConfig) string {
 	return (*(response.Photo))[0].FileID
 }
 
-func setUploadingPhoto(id int64){
+func setUploadingPhoto(id int64) {
 	_, err := bot.Send(tgbotapi.NewChatAction(id, tgbotapi.ChatUploadPhoto))
 	if err != nil {
 		log.Print(err)

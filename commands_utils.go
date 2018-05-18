@@ -8,8 +8,6 @@ import (
 	"strings"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"time"
-	"os"
-	"bytes"
 )
 
 func getRippleStats() string {
@@ -43,7 +41,7 @@ func getCurrency(name string) string {
 }
 
 func getBalance(address string) float64 {
-	resp, err := http.Get(configuration.RippleUrlBase + address + "/balances")
+	resp, err := http.Get(config.RippleUrlBase + address + "/balances")
 	if err != nil {
 		log.Print(err)
 	}
@@ -64,22 +62,8 @@ func rememberPost(message *tgbotapi.Message) {
 }
 
 func rememberDelay(message *tgbotapi.Message) {
-	file, err := os.Open("posts.json")
-	if err != nil {
-		log.Print(err)
-	}
-	defer file.Close()
-
-	body, err := ioutil.ReadAll(file)
-	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
-	reader := bytes.NewReader(body)
-	decoder := json.NewDecoder(reader)
-
 	var posts []PendingPost
-	err = decoder.Decode(&posts)
-	if err != nil {
-		log.Print(err)
-	}
+	readJson(&posts, "posts.json")
 
 	post := PendingPost{Message: currPost,
 		DelayHours: stringToFloat64(message.Text),
@@ -87,11 +71,7 @@ func rememberDelay(message *tgbotapi.Message) {
 	}
 	posts = append(posts, post)
 
-	dataJson, err := json.Marshal(&posts)
-	if err != nil {
-		log.Print(err)
-	}
-	ioutil.WriteFile("posts.json", dataJson, 0644)
+	writeJson(&posts, "posts.json")
 	currPost = tgbotapi.Message{}
 	currState = ""
 	sendMessage(message.Chat.ID, phrases[11], nil)

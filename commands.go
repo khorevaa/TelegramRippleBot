@@ -7,9 +7,6 @@ import (
 	"log"
 	"fmt"
 	"time"
-	"os"
-	"io/ioutil"
-	"bytes"
 )
 
 func start(message *tgbotapi.Message) {
@@ -66,7 +63,7 @@ func balance(message *tgbotapi.Message) {
 		log.Print(err)
 	}
 	text += float64ToString(coin.PriceUSD*sum) + " USD\n"
-	text += "👉 [Buy/Sell XRP](" + configuration.BuySellXRP + ")" + " - XRP /stats"
+	text += "👉 [Buy/Sell XRP](" + config.BuySellXRP + ")" + " - XRP /stats"
 
 	sendMessage(message.Chat.ID, text, nil)
 }
@@ -87,8 +84,9 @@ func index(message *tgbotapi.Message) {
 		number := i
 		number++
 		numberStr := numberEmojis[number]
-		currText = numberStr + " " + newMap[number].Symbol + " " + float64ToString(newMap[number].PriceUSD) +
-			" USD _(" + float64WithSign(newMap[number].PercentChange24H) + "%)_\n"
+		currText = numberStr + " " + newMap[number].Symbol + " " +
+			float64ToString(newMap[number].PriceUSD) + " USD _(" +
+			float64WithSign(newMap[number].PercentChange24H) + "%)_\n"
 
 		if newMap[number].Name == "Ripple" {
 			currText = "*" + currText + "*"
@@ -139,26 +137,25 @@ func priceXrp(message *tgbotapi.Message) {
 	text := "*XRP = " + float64ToString(coin.PriceUSD) + " USD* " +
 		float64WithSign(coin.PercentChange24H) + "% _(24h)_" + "\n\n" +
 		float64WithSign(coin.PercentChange7D) + "% _(7d)_" +
-		"\n\n📈 view /chart or more XRP /stats \n" + "👉 [Buy/Sell XRP](" + configuration.BuySellXRP + ")"
+		"\n\n📈 view /chart or more XRP /stats \n" + "👉 [Buy/Sell XRP](" + config.BuySellXRP + ")"
 	sendMessage(message.Chat.ID, text, nil)
 }
 
 func chart(message *tgbotapi.Message) {
 	fields := strings.Fields(message.Text)
-	if len(fields) == 1{
+	if len(fields) == 1 {
 		chart24h(message)
-	}else if len(fields) == 2{
-		if fields[1] == "24h"{
+	} else if len(fields) == 2 {
+		if fields[1] == "24h" {
 			chart24h(message)
-		}else if fields[1] == "30d"{
+		} else if fields[1] == "30d" {
 			chart30d(message)
 		}
-	}else{
+	} else {
 		sendMessage(message.Chat.ID, phrases[8], nil)
 	}
 
 }
-
 
 func chart24h(message *tgbotapi.Message) {
 	var photo tgbotapi.PhotoConfig
@@ -196,7 +193,6 @@ func chart30d(message *tgbotapi.Message) {
 	}
 }
 
-
 func stats(message *tgbotapi.Message) {
 	coin, err := cmc.GetCoinData("ripple")
 	if err != nil {
@@ -217,13 +213,13 @@ func stats(message *tgbotapi.Message) {
 	sendMessage(message.Chat.ID, text, nil)
 }
 
-func currency(message *tgbotapi.Message){
+func currency(message *tgbotapi.Message) {
 	fields := strings.Fields(message.Text)
-	if len(fields) < 2{
+	if len(fields) < 2 {
 		sendMessage(message.Chat.ID, phrases[7], nil)
 		return
 	}
-	if !contains(currencies, strings.ToUpper(fields[1])){
+	if !contains(currencies, strings.ToUpper(fields[1])) {
 		sendMessage(message.Chat.ID, phrases[5], nil)
 		return
 	}
@@ -234,7 +230,7 @@ func currency(message *tgbotapi.Message){
 }
 
 func newPost(message *tgbotapi.Message) {
-	if !containsInt64(configuration.AdminIds, message.Chat.ID){
+	if !containsInt64(config.AdminIds, message.Chat.ID) {
 		return
 	}
 	currState = "waitingForPost"
@@ -242,55 +238,26 @@ func newPost(message *tgbotapi.Message) {
 }
 
 func deletePost(message *tgbotapi.Message) {
-	file, err := os.Open("posts.json")
-	if err != nil {
-		log.Print(err)
-	}
-
-	body, err := ioutil.ReadAll(file)
-	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
-	reader := bytes.NewReader(body)
-	decoder := json.NewDecoder(reader)
 
 	var posts []PendingPost
-	err = decoder.Decode(&posts)
-	if err != nil {
-		log.Print(err)
-	}
+	readJson(&posts, "posts.json")
 	fields := strings.Fields(message.Text)
 	ind := stringToInt64(fields[1])
-	for i := range posts{
-		if int64(i) == ind - 1{
+	for i := range posts {
+		if int64(i) == ind-1 {
 			posts = append(posts[:i], posts[i+1:]...)
 			break
 		}
 	}
-	dataJson, err := json.Marshal(&posts)
-	if err != nil {
-		log.Print(err)
-	}
-	ioutil.WriteFile("posts.json", dataJson, 0644)
+	writeJson(&posts, "posts.json")
 }
 
 func pendingPosts(message *tgbotapi.Message) {
-	file, err := os.Open("posts.json")
-	if err != nil {
-		log.Print(err)
-	}
-
-	body, err := ioutil.ReadAll(file)
-	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
-	reader := bytes.NewReader(body)
-	decoder := json.NewDecoder(reader)
-
 	var posts []PendingPost
-	err = decoder.Decode(&posts)
-	if err != nil {
-		log.Print(err)
-	}
+	readJson(&posts, "posts.json")
 	var text string
-	for i, post := range posts{
-		text += intToString(i+1) + ". " + post.Message.Text + "\n"
+	for i, post := range posts {
+		text += int64ToString(int64(i+1)) + ". " + post.Message.Text + "\n"
 	}
 	sendMessage(message.Chat.ID, text, nil)
 }

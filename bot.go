@@ -6,7 +6,6 @@ import (
 	"os"
 	"io"
 	"io/ioutil"
-	"bytes"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"time"
@@ -16,17 +15,17 @@ import (
 )
 
 var (
-	bot           *tgbotapi.BotAPI
-	configuration Config
-	db            *gorm.DB
-	phrases       map[int]string
-	cache24h      CachedStats
-	cache30d      CachedStats
-	sinceTwitter  = make(map[string]int64)
-	twitter       *anaconda.TwitterApi
-	listings      []Listing
-	currState     string
-	currPost 	  tgbotapi.Message
+	bot          *tgbotapi.BotAPI
+	config       Configuration
+	db           *gorm.DB
+	phrases      map[int]string
+	cache24h     CachedStats
+	cache30d     CachedStats
+	sinceTwitter = make(map[string]int64)
+	twitter      *anaconda.TwitterApi
+	listings     []Listing
+	currState    string
+	currPost     tgbotapi.Message
 
 	linksKeyboard tgbotapi.InlineKeyboardMarkup
 	numberEmojis  = map[int]string{
@@ -58,7 +57,7 @@ func main() {
 	initListings()
 
 	var err error
-	bot, err = tgbotapi.NewBotAPI(configuration.BotToken)
+	bot, err = tgbotapi.NewBotAPI(config.BotToken)
 	if err != nil {
 		log.Print("ERROR: ")
 		log.Panic(err)
@@ -114,7 +113,7 @@ func main() {
 			case "pendingposts":
 				pendingPosts(update.Message)
 			}
-		} else if containsInt64(configuration.AdminIds, update.Message.Chat.ID) {
+		} else if containsInt64(config.AdminIds, update.Message.Chat.ID) {
 			switch currState {
 			case "waitingForPost":
 				rememberPost(update.Message)
@@ -137,59 +136,18 @@ func initLog() {
 }
 
 func initConfig() {
-	file, err := os.Open("config.json")
-	if err != nil {
-		log.Print("ERROR: ")
-		log.Panic(err)
-	}
-	defer file.Close()
-
-	body, err := ioutil.ReadAll(file)
-	log.Print("First 10 bytes from config.json")
-	log.Print(body[:10])
-	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
-	log.Print("First 10 bytes after trim")
-	reader := bytes.NewReader(body)
-	log.Print(body[:10])
-	decoder := json.NewDecoder(reader)
-
-	err = decoder.Decode(&configuration)
-	if err != nil {
-		log.Print("ERROR: ")
-		log.Panic(err)
-	}
-
+	readJson(&config, "config.json")
 }
 
 func initStrings() {
-	file, err := os.Open("strings.json")
-	if err != nil {
-		log.Print("ERROR: ")
-		log.Panic(err)
-	}
-	defer file.Close()
-
-	body, err := ioutil.ReadAll(file)
-	log.Print("First 10 bytes from strings.json")
-	log.Print(body[:10])
-	body = bytes.TrimPrefix(body, []byte("\xef\xbb\xbf"))
-	log.Print("First 10 bytes after trim")
-	reader := bytes.NewReader(body)
-	log.Print(body[:10])
-	decoder := json.NewDecoder(reader)
-
-	err = decoder.Decode(&phrases)
-	if err != nil {
-		log.Print("ERROR: ")
-		log.Panic(err)
-	}
+	readJson(&phrases, "strings.json")
 }
 
 func initKeyboard() {
 	linksKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonURL("Transaction details", ""),
-			tgbotapi.NewInlineKeyboardButtonURL("Buy/Sell XRP", configuration.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy/Sell XRP", config.BuySellXRP),
 		),
 	)
 }
@@ -210,15 +168,15 @@ func initDB() {
 }
 
 func initTwitter() {
-	twitter = anaconda.NewTwitterApiWithCredentials(configuration.TwitterAccessToken,
-		configuration.TwitterAccessSecret,
-		configuration.TwitterConsumerKey,
-		configuration.TwitterConsumerSecret)
+	twitter = anaconda.NewTwitterApiWithCredentials(config.TwitterAccessToken,
+		config.TwitterAccessSecret,
+		config.TwitterConsumerKey,
+		config.TwitterConsumerSecret)
 
 	v := url.Values{}
 	v.Add("exclude_replies", "true")
 	v.Add("include_rts", "false")
-	for _, val := range configuration.TwitterAccounts {
+	for _, val := range config.TwitterAccounts {
 		v.Add("screen_name", val)
 		v.Add("count", "1")
 		searchResult, err := twitter.GetUserTimeline(v)
@@ -238,7 +196,7 @@ func initCache() {
 }
 
 func initListings() {
-	resp, err := http.Get(configuration.CoinMarketCapListings)
+	resp, err := http.Get(config.CoinMarketCapListings)
 	if err != nil {
 		log.Print(err)
 	}

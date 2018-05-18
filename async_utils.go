@@ -6,18 +6,17 @@ import (
 	"io/ioutil"
 	"github.com/json-iterator/go"
 	"github.com/ChimeraCoder/anaconda"
-	"strconv"
 	cmc "github.com/coincircle/go-coinmarketcap"
 
 	"net/url"
 )
 
-var(
-	 json = jsoniter.ConfigCompatibleWithStandardLibrary
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func getTransactions(address string, timestamp string) []Transaction {
-	url := configuration.RippleUrlBase + address + configuration.RippleUrlParams + timestamp
+	url := config.RippleUrlBase + address + config.RippleUrlParams + timestamp
 	log.Print(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -25,10 +24,10 @@ func getTransactions(address string, timestamp string) []Transaction {
 	}
 	defer resp.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil{
+	if err != nil {
 		log.Print(err)
 	}
-	log.Print(string(bodyBytes))
+	//log.Print(string(bodyBytes))
 	var txs []Transaction
 	str := json.Get(bodyBytes, "transactions").ToString()
 	log.Print(str)
@@ -37,73 +36,71 @@ func getTransactions(address string, timestamp string) []Transaction {
 	return txs
 }
 
-func sendNotifications(txs []Transaction, wallet Wallet){
+func sendNotifications(txs []Transaction, wallet Wallet) {
 	var users []User
 	db.Model(&wallet).Related(&users, "Users")
-	for _, user := range users{
+	for _, user := range users {
 		var text string
-		for _, tx := range txs{
-			amount, err := strconv.ParseInt(tx.Tx.Amount, 10, 64)
-			if err != nil{
-				log.Print(err)
-			}
+		for _, tx := range txs {
+			amount := stringToInt64(tx.Tx.Amount)
+
 			decAmount := float64(amount) / 1000000
-			decAmountStr := strconv.FormatFloat(decAmount, 'f', 0, 64)
+			decAmountStr := float64ToString(decAmount)
 
 			var uw UserWallet
 			db.First(&uw, "user_id = ? AND wallet_id = ?", user.ID, wallet.ID)
 			name := "your"
-			if uw.Name != ""{
+			if uw.Name != "" {
 				name = "*" + uw.Name + "*"
 			}
 
 			var balance string
-			for _, node := range tx.Meta.AffectedNodes{
-				if node.Modified.Data.Account == wallet.Address{
+			for _, node := range tx.Meta.AffectedNodes {
+				if node.Modified.Data.Account == wallet.Address {
 					balance = node.Modified.Data.Balance
 				}
 			}
-			balanceInt, err := strconv.ParseInt(balance, 10, 64)
-			if err != nil{
-				log.Print(err)
-			}
+			balanceInt := stringToInt64(balance)
+
 			decBalance := float64(balanceInt) / 1000000
-			decBalanceStr := strconv.FormatFloat(decBalance, 'f', 3, 64)
+			decBalanceStr := float64ToString(decBalance)
 
-
-			if tx.Tx.Destination == wallet.Address{
+			if tx.Tx.Destination == wallet.Address {
 				text = "💰 You received *" + decAmountStr + " XRP* on "
-			}else {
+			} else {
 				text = "💸 You sent *" + decAmountStr + " XRP* from "
 			}
-			text +=  name + " wallet\n\n" + "New balance:\n*" + decBalanceStr + " XRP* ≈ "
+			text += name + " wallet\n\n" + "New balance:\n*" + decBalanceStr + " XRP* ≈ "
 			coin, err := cmc.GetCoinData("ripple")
 			if err != nil {
 				log.Print(err)
 			}
-			text += float64ToString(coin.PriceUSD * decBalance) + " USD\n"
-			*linksKeyboard.InlineKeyboard[0][0].URL = "https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
+			text += float64ToString(coin.PriceUSD*decBalance) + " USD\n"
+			*linksKeyboard.InlineKeyboard[0][0].URL =
+				"https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
 			sendMessage(user.ID, text, linksKeyboard)
 		}
 
 	}
 }
 
-func postTweet(t anaconda.Tweet){
-	sendMessage(configuration.ChannelId, t.User.Name + "(" + t.User.ScreenName + "):\n" + t.FullText, nil)
+func postTweet(t anaconda.Tweet) {
+	sendMessage(config.ChannelId,
+		t.User.Name+"("+t.User.ScreenName+"):\n"+t.FullText,
+		nil)
 }
 
-func shiftArray(arr *[]float64){
-	for i := range *arr{
-		if i+1 <= len(*arr)-1{
+func shiftArray(arr *[]float64) {
+	for i := range *arr {
+		if i+1 <= len(*arr)-1 {
 			(*arr)[i] = (*arr)[i+1]
-		}else {
+		} else {
 			(*arr)[i] = 0
 		}
 	}
 }
 
-func tweet(text string){
+func tweet(text string) {
 	_, err := twitter.PostTweet(text, url.Values{})
 	if err != nil {
 		log.Print(err)

@@ -41,7 +41,8 @@ func addWalletDB(message *tgbotapi.Message) {
 	}
 
 	if name != "" {
-		db.Model(&UserWallet{}).Where("user_id = ? AND wallet_id = ?", u.ID, wallet.ID).Update("name", name)
+		db.Model(&UserWallet{}).Where("user_id = ? AND wallet_id = ?",
+			u.ID, wallet.ID).Update("name", name)
 	}
 }
 

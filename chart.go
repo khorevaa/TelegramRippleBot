@@ -49,7 +49,7 @@ func loadChart(period string) {
 	drawCurrentValue()
 	drawName(pair)
 	drawDate()
-	dc.SavePNG("chart-"+period+".png")
+	dc.SavePNG("chart-" + period + ".png")
 }
 
 func drawBackground() {
@@ -133,7 +133,7 @@ func drawCandle(i float64, candle Candle, period string) {
 		"2006-01-02T15:04:05",
 		candle.Time)
 	if err != nil {
-		val, _ := strconv.ParseInt(candle.Time, 10,64)
+		val := stringToInt64(candle.Time)
 		t1 = time.Unix(int64(val)/1000, 0).UTC()
 	}
 
@@ -143,35 +143,39 @@ func drawCandle(i float64, candle Candle, period string) {
 			log.Print(err)
 		}
 
-		if period == "day"{
-			day := strconv.FormatInt(int64(t1.Day()), 10)
-			month := strconv.FormatInt(int64(t1.Month()), 10)
+		if period == "day" {
+			day := int64ToString(int64(t1.Day()))
+			month := int64ToString(int64(t1.Month()))
 
-			dc.DrawStringAnchored(day+"/"+month, 7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
-		}else {
-			hours := strconv.FormatInt(int64(t1.Hour()), 10)
+			dc.DrawStringAnchored(day+"/"+month,
+				7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
+		} else {
+			hours := int64ToString(int64(t1.Hour()))
 			var minutes string
 			if t1.Minute() == 0 {
 				minutes = "00"
 			} else {
-				minutes = strconv.FormatInt(int64(t1.Minute()), 10)
+				minutes = int64ToString(int64(t1.Minute()))
 
 			}
-			dc.DrawStringAnchored(hours+":"+minutes, 7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
-
+			dc.DrawStringAnchored(hours+":"+minutes,
+				7+i*candleAreaWidth+candleWidth/2, chartHeight+25, 0.5, 0.5)
 		}
-		dc.DrawLine(7+i*candleAreaWidth+candleWidth/2, chartHeight+15, 7+i*candleAreaWidth+candleWidth/2, chartHeight+19)
+		dc.DrawLine(7+i*candleAreaWidth+candleWidth/2,
+			chartHeight+15, 7+i*candleAreaWidth+candleWidth/2, chartHeight+19)
 		dc.SetColor(blackColor)
 		dc.SetLineWidth(1)
 		dc.Stroke()
-		dc.DrawLine(7+i*candleAreaWidth+candleWidth/2, 0, 7+i*candleAreaWidth+candleWidth/2, chartHeight+15)
+		dc.DrawLine(7+i*candleAreaWidth+candleWidth/2,
+			0, 7+i*candleAreaWidth+candleWidth/2, chartHeight+15)
 		dc.SetColor(strokeColor)
 		dc.SetLineWidth(1)
 		dc.Stroke()
 	}
 
 	//объем
-	dc.DrawRectangle(4+i*candleAreaWidth, chartHeight+14-(volume)*volumesHeight/(vValue), candleWidth+6,
+	dc.DrawRectangle(4+i*candleAreaWidth,
+		chartHeight+14-(volume)*volumesHeight/(vValue), candleWidth+6,
 		(volume)*volumesHeight/(vValue))
 	if open >= close {
 		dc.SetColor(redColorTrans)
@@ -184,13 +188,15 @@ func drawCandle(i float64, candle Candle, period string) {
 	dc.Stroke()
 
 	//палка
-	dc.DrawRectangle(7+i*candleAreaWidth+candleWidth/2, 7+(hValue-highest)*chartHeight/(hValue-lValue), 1,
+	dc.DrawRectangle(7+i*candleAreaWidth+candleWidth/2,
+		7+(hValue-highest)*chartHeight/(hValue-lValue), 1,
 		(highest-lowest)*chartHeight/(hValue-lValue))
 	dc.SetColor(blackColor)
 	dc.Fill()
 
 	//свеча
-	dc.DrawRectangle(7+i*candleAreaWidth, 7+(hValue-open)*chartHeight/(hValue-lValue), candleWidth,
+	dc.DrawRectangle(7+i*candleAreaWidth,
+		7+(hValue-open)*chartHeight/(hValue-lValue), candleWidth,
 		(open-close)*chartHeight/(hValue-lValue))
 	if open >= close {
 		dc.SetColor(redColor)
@@ -205,7 +211,8 @@ func drawCandle(i float64, candle Candle, period string) {
 }
 
 func drawCurrentValue() {
-	dc.DrawRectangle(910, (hValue-candles[len(candles)-1].Close)*chartHeight/(hValue-lValue), 90,
+	dc.DrawRectangle(910,
+		(hValue-candles[len(candles)-1].Close)*chartHeight/(hValue-lValue), 90,
 		16)
 	if candles[len(candles)-1].Close > candles[len(candles)-1].Open {
 		dc.SetColor(greenColor)
@@ -227,8 +234,9 @@ func drawCurrentValue() {
 	} else {
 		prec = 8
 	}
-	dc.DrawStringAnchored(strconv.FormatFloat(candles[len(candles)-1].Close, 'f', prec, 64),
-		916, (hValue-candles[len(candles)-1].Close)*chartHeight/(hValue-lValue)+7, 0, 0.5)
+	dc.DrawStringAnchored(strconv.FormatFloat(candles[len(candles)-1].Close,
+		'f', prec, 64), 916,
+		(hValue-candles[len(candles)-1].Close)*chartHeight/(hValue-lValue)+7, 0, 0.5)
 
 }
 
@@ -246,7 +254,7 @@ func drawDate() {
 		"2006-01-02T15:04:05",
 		candles[len(candles)-1].Time)
 	if err != nil {
-		val, _ := strconv.ParseUint(candles[len(candles)-1].Time, 10,64)
+		val, _ := strconv.ParseUint(candles[len(candles)-1].Time, 10, 64)
 		t1 = time.Unix(int64(val)/1000, 0).UTC()
 	}
 	dc.SetColor(blackColor)
@@ -255,8 +263,8 @@ func drawDate() {
 	dc.Fill()
 	dc.SetColor(whiteColor)
 
-		dc.DrawStringAnchored(fmt.Sprintf("%02d/%02d/%d UTC+0",
-			t1.Month(), t1.Day(), t1.Year()), 165, 17, 0.5, 0.5)
+	dc.DrawStringAnchored(fmt.Sprintf("%02d/%02d/%d UTC+0",
+		t1.Month(), t1.Day(), t1.Year()), 165, 17, 0.5, 0.5)
 
 }
 
@@ -264,8 +272,8 @@ func getCandlesBittrex(pair, period string) []Candle {
 	var response Response
 	var resp *http.Response
 	var err error
-	for{
-		resp, err = http.Get(fmt.Sprintf(configuration.BittrexChartURL, period, pair))
+	for {
+		resp, err = http.Get(fmt.Sprintf(config.BittrexChartURL, period, pair))
 		if err != nil {
 			log.Print(err)
 		}
@@ -275,9 +283,9 @@ func getCandlesBittrex(pair, period string) []Candle {
 			break
 		}
 	}
-	if len(response.Result) <= 50{
+	if len(response.Result) <= 50 {
 		return response.Result
-	}else {
+	} else {
 		return response.Result[len(response.Result)-50:]
 	}
 }

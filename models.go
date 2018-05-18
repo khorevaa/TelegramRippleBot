@@ -6,7 +6,7 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-type Config struct {
+type Configuration struct {
 	BotToken                                                                           string
 	ChannelId                                                                          int64
 	BuySellXRP                                                                         string
@@ -101,14 +101,13 @@ type Listing struct {
 }
 
 type Prices struct {
-	LastCheck   string    `json:"LastCheck"`
-	Yesterday   float64   `json:"Yesterday"`
-	Highs Periods`json:"Highs"`
-	Lows Periods`json:"Lows"`
-
+	LastCheck string  `json:"LastCheck"`
+	Yesterday float64 `json:"Yesterday"`
+	Highs     Periods `json:"Highs"`
+	Lows      Periods `json:"Lows"`
 }
 
-type Periods struct{
+type Periods struct {
 	AllTime     float64   `json:"allTime"`
 	Week        []float64 `json:"7d"`
 	Month       []float64 `json:"30d"`
@@ -116,7 +115,7 @@ type Periods struct{
 }
 
 type PendingPost struct {
-	Message tgbotapi.Message
+	Message  tgbotapi.Message
 	PostTime time.Time
 	//IsRepeating bool
 	DelayHours float64

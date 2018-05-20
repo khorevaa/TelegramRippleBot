@@ -48,9 +48,9 @@ func checkTwitter() {
 			}
 			for _, val := range searchResult {
 				sendMessage(config.ChannelId,
-					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText,nil)
+					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText, nil)
 				sendMessage(config.ChatId,
-					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText,nil)
+					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText, nil)
 			}
 			if len(searchResult) > 0 {
 				sinceTwitter[val] = searchResult[0].Id
@@ -60,41 +60,35 @@ func checkTwitter() {
 	}
 }
 
-func checkEverydayPrice() {
+func checkPrice() {
 	for {
-		if time.Now().Hour() == 10 && time.Now().Minute() == 0 {
-			var old Prices
-			readJson(&old, "prices.json")
+		var old Prices
+		readJson(&old, "prices.json")
 
-			price, err := cmc.Price(&cmc.PriceOptions{
-				Symbol:  "XRP",
-				Convert: "USD",
-			})
-			if err != nil {
-				log.Print(err)
-			}
-
-			var text string
-			diff := price - old.Yesterday
-			if diff >= 0 {
-				text = "🚀 XRP is up %s%% the last 24h and is now trading @ %s USD."
-			} else {
-				text = "📉 XRP is down %s%% the last 24h and is now trading @ %s USD."
-			}
-
-			text = fmt.Sprintf(text, float64WithSign(diff), float64ToString(price))
-
-			sendMessage(config.ChannelId, text, nil)
-			sendMessage(config.ChatId, text, nil)
-			sendAllUsers(tgbotapi.MessageConfig{Text:text})
-			tweet(text)
-			old.Yesterday = price
-			writeJson(&old, "prices.json")
-			time.Sleep(24 * time.Hour)
-		} else {
-			time.Sleep(1 * time.Minute)
+		price, err := cmc.Price(&cmc.PriceOptions{
+			Symbol:  "XRP",
+			Convert: "USD",
+		})
+		if err != nil {
+			log.Print(err)
 		}
 
+		var text string
+		diff := price - old.Highs.Week[len(old.Highs.Week)-1]
+		if diff >= 0 {
+			text = "🚀 XRP is up %s%% the last 24h and is now trading @ %s USD."
+		} else {
+			text = "📉 XRP is down %s%% the last 24h and is now trading @ %s USD."
+		}
+
+		text = fmt.Sprintf(text, float64WithSign(diff), float64ToString(price))
+
+		sendMessage(config.ChannelId, text, nil)
+		sendMessage(config.ChatId, text, nil)
+		sendAllUsers(tgbotapi.MessageConfig{Text: text})
+		tweet(text)
+		writeJson(&old, "prices.json")
+		time.Sleep(6 * time.Hour)
 	}
 }
 
@@ -202,7 +196,7 @@ func checkPeriodsPrice() {
 		if text != "" {
 			sendMessage(config.ChannelId, text, nil)
 			sendMessage(config.ChatId, text, nil)
-			sendAllUsers(tgbotapi.MessageConfig{Text:text})
+			sendAllUsers(tgbotapi.MessageConfig{Text: text})
 			tweet(text)
 		}
 
@@ -286,7 +280,7 @@ func weeklyRoundUp() {
 				float64ToString(market.BitcoinPercentageOfMarketCap))
 			sendMessage(config.ChannelId, text, nil)
 			sendMessage(config.ChatId, text, nil)
-			sendAllUsers(tgbotapi.MessageConfig{Text:text})
+			sendAllUsers(tgbotapi.MessageConfig{Text: text})
 		}
 		time.Sleep(1 * time.Hour)
 	}
@@ -305,13 +299,13 @@ func checkPosts() {
 			d := t1.Sub(t2).Seconds()
 			if d > 0 {
 				sent = true
-				if post.Destination == 1{
+				if post.Destination == 1 {
 					msg := parsePost(&posts[i], config.ChannelId)
 					bot.Send(msg)
-				}else if post.Destination == 2{
+				} else if post.Destination == 2 {
 					msg := parsePost(&posts[i], config.ChatId)
 					bot.Send(msg)
-				}else {
+				} else {
 					sendAllUsers(parsePost(&posts[i], 0).(tgbotapi.MessageConfig))
 				}
 			}

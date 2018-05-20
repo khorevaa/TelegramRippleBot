@@ -69,7 +69,7 @@ func main() {
 
 	go checkTransactions()
 	go checkTwitter()
-	go checkEverydayPrice()
+	go checkPrice()
 	go checkPeriodsPrice()
 	go weeklyRoundUp()
 	go checkPosts()

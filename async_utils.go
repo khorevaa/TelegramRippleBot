@@ -98,7 +98,7 @@ func shiftArray(arr *[]float64) {
 }
 
 func tweet(text string) {
-	_, err := twitter.PostTweet(text, url.Values{})
+	_, err := twitter.PostTweet(text+phrases[20], url.Values{})
 	if err != nil {
 		log.Print(err)
 	}

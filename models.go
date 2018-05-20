@@ -102,7 +102,6 @@ type Listing struct {
 
 type Prices struct {
 	LastCheck string  `json:"LastCheck"`
-	Yesterday float64 `json:"Yesterday"`
 	Highs     Periods `json:"Highs"`
 	Lows      Periods `json:"Lows"`
 }

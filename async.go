@@ -217,23 +217,29 @@ func checkPeriodsPrice() {
 		}
 		old.LastCheck = time.Now().Format(time.RFC822)
 
-		if old.Highs.ThreeMonths[len(old.Highs.ThreeMonths)-1] < price {
+		if old.Highs.ThreeMonths[len(old.Highs.ThreeMonths)-1] < price ||
+			old.Highs.ThreeMonths[len(old.Highs.ThreeMonths)-1] == 0 {
 			old.Highs.ThreeMonths[len(old.Highs.ThreeMonths)-1] = price
 		}
-		if old.Highs.Month[len(old.Highs.Month)-1] < price {
+		if old.Highs.Month[len(old.Highs.Month)-1] < price ||
+			old.Highs.Month[len(old.Highs.Month)-1] == 0 {
 			old.Highs.Month[len(old.Highs.Month)-1] = price
 		}
-		if old.Highs.Week[len(old.Highs.Week)-1] < price {
+		if old.Highs.Week[len(old.Highs.Week)-1] < price ||
+			old.Highs.Week[len(old.Highs.Week)-1] == 0 {
 			old.Highs.Week[len(old.Highs.Week)-1] = price
 		}
 
-		if old.Lows.ThreeMonths[len(old.Lows.ThreeMonths)-1] > price {
+		if old.Lows.ThreeMonths[len(old.Lows.ThreeMonths)-1] > price ||
+			old.Lows.ThreeMonths[len(old.Lows.ThreeMonths)-1] == 0 {
 			old.Lows.ThreeMonths[len(old.Lows.ThreeMonths)-1] = price
 		}
-		if old.Lows.Month[len(old.Lows.Month)-1] > price {
+		if old.Lows.Month[len(old.Lows.Month)-1] > price ||
+			old.Lows.Month[len(old.Lows.Month)-1] == 0 {
 			old.Lows.Month[len(old.Lows.Month)-1] = price
 		}
-		if old.Lows.Week[len(old.Lows.Week)-1] > price {
+		if old.Lows.Week[len(old.Lows.Week)-1] > price ||
+			old.Lows.Week[len(old.Lows.Week)-1] == 0 {
 			old.Lows.Week[len(old.Lows.Week)-1] = price
 		}
 

@@ -5,7 +5,6 @@ import (
 	"log"
 	"io/ioutil"
 	"github.com/json-iterator/go"
-	"github.com/ChimeraCoder/anaconda"
 	cmc "github.com/coincircle/go-coinmarketcap"
 
 	"net/url"
@@ -79,19 +78,14 @@ func sendNotifications(txs []Transaction, wallet Wallet) {
 				log.Print(err)
 			}
 			text += float64ToString(price*decBalance) + " USD\n"
-			*linksKeyboard.InlineKeyboard[0][0].URL =
+			*txLinksKeyboard.InlineKeyboard[0][0].URL =
 				"https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
-			sendMessage(user.ID, text, linksKeyboard)
+			sendMessage(user.ID, text, txLinksKeyboard)
 		}
 
 	}
 }
 
-func postTweet(t anaconda.Tweet) {
-	sendMessage(config.ChannelId,
-		t.User.Name+"("+t.User.ScreenName+"):\n"+t.FullText,
-		nil)
-}
 
 func shiftArray(arr *[]float64) {
 	for i := range *arr {

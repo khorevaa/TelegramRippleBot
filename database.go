@@ -26,9 +26,8 @@ func addWalletDB(message *tgbotapi.Message) {
 	var addr, name string
 	fields := strings.Fields(message.Text)
 	addr = fields[1]
-	if len(fields) == 3 {
-		name = fields[2]
-	}
+	name = fields[2]
+
 
 	u := getUser(message.From.ID)
 	var wallet Wallet
@@ -40,10 +39,9 @@ func addWalletDB(message *tgbotapi.Message) {
 		db.Model(&u).Association("Wallets").Append(wallet)
 	}
 
-	if name != "" {
-		db.Model(&UserWallet{}).Where("user_id = ? AND wallet_id = ?",
+	db.Model(&UserWallet{}).Where("user_id = ? AND wallet_id = ?",
 			u.ID, wallet.ID).Update("name", name)
-	}
+
 }
 
 func resetWalletsDB(message *tgbotapi.Message) {
@@ -64,4 +62,14 @@ func getUser(id int) User {
 	var u User
 	db.Find(&u, "id = ?", id)
 	return u
+}
+
+func sendAllUsers(msg tgbotapi.MessageConfig){
+	rows, _ := db.Table("users").Rows()
+	for rows.Next() {
+		var user User
+		db.ScanRows(rows, &user)
+		msg.ChatID = user.ID
+		bot.Send(msg)
+	}
 }

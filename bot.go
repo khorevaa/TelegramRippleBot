@@ -25,10 +25,11 @@ var (
 	twitter      *anaconda.TwitterApi
 	listings     []Listing
 	currState    string
-	currPost     tgbotapi.Message
+	currPost     PendingPost
 
-	linksKeyboard tgbotapi.InlineKeyboardMarkup
-	numberEmojis  = map[int]string{
+	txLinksKeyboard   tgbotapi.InlineKeyboardMarkup
+	infoLinksKeyboard tgbotapi.InlineKeyboardMarkup
+	numberEmojis      = map[int]string{
 		1:  "1⃣",
 		2:  "2️⃣",
 		3:  "3️⃣",
@@ -79,48 +80,53 @@ func main() {
 	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
-
-		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-		if update.Message.IsCommand() {
-			command := update.Message.Command()
-			switch command {
-			case "start":
-				start(update.Message)
-			case "addwallet":
-				addWallet(update.Message)
-			case "resetwallets":
-				resetWallets(update.Message)
-			case "balance":
-				balance(update.Message)
-			case "index":
-				index(update.Message)
-			case "xrp", "price", "p":
-				price(update.Message)
-			case "chart":
-				chart(update.Message)
+		if update.Message != nil {
+			if update.Message.IsCommand() {
+				command := update.Message.Command()
+				switch command {
+				case "start":
+					start(update.Message)
+				case "addwallet":
+					addWallet(update.Message)
+				case "resetwallets":
+					resetWallets(update.Message)
+				case "balance":
+					balance(update.Message)
+				case "index":
+					index(update.Message)
+				case "xrp", "price", "p":
+					price(update.Message)
+				case "chart":
+					chart(update.Message)
+				case "stats":
+					stats(update.Message)
+				case "currency":
+					currency(update.Message)
+				case "newpost":
+					newPost(update.Message)
+				case "deletepost":
+					deletePost(update.Message)
+				case "pendingposts":
+					pendingPosts(update.Message)
+				}
+			} else if containsInt64(config.AdminIds, update.Message.Chat.ID) {
+				switch currState {
+				case "waitingForPost":
+					rememberPost(update.Message)
+				case "waitingForDelay":
+					rememberDelay(update.Message)
+				case "waitingForDestination":
+					rememberDestination(update.Message)
+				}
+			}
+		} else if update.CallbackQuery != nil {
+			switch update.CallbackQuery.Data {
 			case "stats":
-				stats(update.Message)
-			case "currency":
-				currency(update.Message)
-			case "newpost":
-				newPost(update.Message)
-			case "deletepost":
-				deletePost(update.Message)
-			case "pendingposts":
-				pendingPosts(update.Message)
+				stats(update.CallbackQuery.Message)
 			}
-		} else if containsInt64(config.AdminIds, update.Message.Chat.ID) {
-			switch currState {
-			case "waitingForPost":
-				rememberPost(update.Message)
-			case "waitingForDelay":
-				rememberDelay(update.Message)
-			}
+			bot.AnswerCallbackQuery(tgbotapi.CallbackConfig{update.CallbackQuery.ID, "", false, "", 0})
 		}
+
 	}
 
 }
@@ -144,9 +150,15 @@ func initStrings() {
 }
 
 func initKeyboard() {
-	linksKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	txLinksKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonURL("Transaction details", ""),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy/Sell XRP", config.BuySellXRP),
+		),
+	)
+	infoLinksKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
 			tgbotapi.NewInlineKeyboardButtonURL("Buy/Sell XRP", config.BuySellXRP),
 		),
 	)

@@ -19,8 +19,8 @@ func getRippleStats() string {
 		log.Print(err)
 	}
 	return "Price: " + float64ToString(coin.Quotes["USD"].Price) + " USD\nVolume: " +
-		float64ToString(coin.Quotes["USD"].Volume24H/1000000) + " mln USD\nCapitalization: " +
-		float64ToString(coin.Quotes["USD"].MarketCap/1000000000) + " bln USD"
+		float64ToString(coin.Quotes["USD"].Volume24H/1000000) + " mn USD\nCapitalization: " +
+		float64ToString(coin.Quotes["USD"].MarketCap/1000000000) + " bn USD"
 }
 
 func checkAddress(a string) bool {
@@ -59,23 +59,26 @@ func getBalance(address string) float64 {
 }
 
 func rememberPost(message *tgbotapi.Message) {
-	currPost = *message
+	currPost.Message = *message
 	currState = "waitingForDelay"
 	sendMessage(message.Chat.ID, phrases[10], nil)
 }
 
 func rememberDelay(message *tgbotapi.Message) {
+	currPost.DelayHours = stringToFloat64(message.Text)
+	currPost.PostTime = time.Now()
+	currState = "waitingForDestination"
+	sendMessage(message.Chat.ID, phrases[11], nil)
+}
+
+
+func rememberDestination(message *tgbotapi.Message) {
 	var posts []PendingPost
 	readJson(&posts, "posts.json")
-
-	post := PendingPost{Message: currPost,
-		DelayHours: stringToFloat64(message.Text),
-		PostTime: time.Now(),
-	}
-	posts = append(posts, post)
-
+	currPost.Destination = stringToInt64(message.Text)
+	posts = append(posts, currPost)
 	writeJson(&posts, "posts.json")
-	currPost = tgbotapi.Message{}
+	currPost = PendingPost{}
 	currState = ""
-	sendMessage(message.Chat.ID, phrases[11], nil)
+	sendMessage(message.Chat.ID, phrases[19], nil)
 }

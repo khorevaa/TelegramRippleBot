@@ -17,18 +17,14 @@ func start(message *tgbotapi.Message) {
 
 func addWallet(message *tgbotapi.Message) {
 	fields := strings.Fields(message.Text)
-	if len(fields) >= 2 {
+	if len(fields) == 3 {
 		if !checkAddress(fields[1]) {
 			sendMessage(message.Chat.ID, phrases[4], nil)
 			return
 		}
 		addWalletDB(message)
 		var text string
-		if len(fields) == 3 {
-			text = fmt.Sprintf(phrases[1], fields[2])
-		} else {
-			text = fmt.Sprintf(phrases[1], fields[1])
-		}
+		text = fmt.Sprintf(phrases[1], fields[2])
 		sendMessage(message.Chat.ID, text, nil)
 	} else {
 		sendMessage(message.Chat.ID, phrases[3], nil)
@@ -45,6 +41,10 @@ func balance(message *tgbotapi.Message) {
 	var wallets []Wallet
 	user := getUser(message.From.ID)
 	db.Model(&user).Association("Wallets").Find(&wallets)
+	if len(wallets) == 0 {
+		sendMessage(message.Chat.ID, phrases[13], nil)
+		return
+	}
 	balances := make(map[string]float64)
 	var sum float64
 	for _, wallet := range wallets {
@@ -54,11 +54,10 @@ func balance(message *tgbotapi.Message) {
 		sum += bal
 		balances[uw.Name] = bal
 	}
-	text := "🏦 You currently hold *" + float64ToString(sum) + " XRP* on your wallets\n\n"
+	text := fmt.Sprintf(phrases[14], float64ToString(sum))
 	for name, bal := range balances {
-		text += "*" + name + "*: " + float64ToString(bal) + " XRP\n"
+		text += fmt.Sprintf(phrases[15], name, float64ToString(bal))
 	}
-	text += "\nEstimated worth:\n"
 	price, err := cmc.Price(&cmc.PriceOptions{
 		Symbol:  "XRP",
 		Convert: "USD",
@@ -66,10 +65,8 @@ func balance(message *tgbotapi.Message) {
 	if err != nil {
 		log.Print(err)
 	}
-	text += float64ToString(price*sum) + " USD\n"
-	text += "👉 [Buy/Sell XRP](" + config.BuySellXRP + ")" + " - XRP /stats"
-
-	sendMessage(message.Chat.ID, text, nil)
+	text += fmt.Sprintf(phrases[16], float64ToString(price*sum))
+	sendMessage(message.Chat.ID, text, infoLinksKeyboard)
 }
 
 func index(message *tgbotapi.Message) {
@@ -128,9 +125,10 @@ func priceCoin(message *tgbotapi.Message) {
 			log.Print(err)
 		}
 
-		text = "*" + coin.Symbol + " = " + float64ToString(coin.Quotes["USD"].Price) + " USD* " +
-			float64WithSign(coin.Quotes["USD"].PercentChange24H) + "% _(24h)_" + "\n\n" +
-			float64WithSign(coin.Quotes["USD"].PercentChange7D) + "% _(7d)_"
+		text = fmt.Sprintf(phrases[17], coin.Symbol,
+			float64ToString(coin.Quotes["USD"].Price),
+			float64WithSign(coin.Quotes["USD"].PercentChange24H),
+			float64WithSign(coin.Quotes["USD"].PercentChange7D))
 
 	} else {
 		text = phrases[5]
@@ -148,11 +146,12 @@ func priceXrp(message *tgbotapi.Message) {
 		log.Print(err)
 	}
 
-	text := "*XRP = " + float64ToString(coin.Quotes["USD"].Price) + " USD* " +
-		float64WithSign(coin.Quotes["USD"].PercentChange24H) + "% _(24h)_" + "\n\n" +
-		float64WithSign(coin.Quotes["USD"].PercentChange7D) + "% _(7d)_" +
-		"\n\n📈 view /chart or more XRP /stats \n" + "👉 [Buy/Sell XRP](" + config.BuySellXRP + ")"
-	sendMessage(message.Chat.ID, text, nil)
+	text := fmt.Sprintf(phrases[17], "XRP",
+		float64ToString(coin.Quotes["USD"].Price),
+		float64WithSign(coin.Quotes["USD"].PercentChange24H),
+		float64WithSign(coin.Quotes["USD"].PercentChange7D))
+
+	sendMessage(message.Chat.ID, text, infoLinksKeyboard)
 }
 
 func chart(message *tgbotapi.Message) {
@@ -224,13 +223,13 @@ func stats(message *tgbotapi.Message) {
 		log.Print(err)
 	}
 
-	text := "Last price: " + float64ToString(coin.Quotes["USD"].Price) + " USD _(" +
-		float64WithSign(coin.Quotes["USD"].PercentChange24H) + "% last 24h)_\n"
-	text += "Market cap: " + float64ToString(coin.Quotes["USD"].MarketCap/1000000000) + " bln USD\n"
 	share := coin.Quotes["USD"].MarketCap * 100 / market.Quotes["USD"].TotalMarketCap
-	text += "Market share: " + float64ToString(share) + "%\n"
-	text += "BTC dominance: " + float64ToString(market.BitcoinPercentageOfMarketCap) + "%"
 
+	text := fmt.Sprintf(phrases[18],float64ToString(coin.Quotes["USD"].Price),
+		float64WithSign(coin.Quotes["USD"].PercentChange24H),
+		float64ToString(coin.Quotes["USD"].MarketCap/1000000000),
+		float64ToString(share),
+		float64ToString(market.BitcoinPercentageOfMarketCap))
 	sendMessage(message.Chat.ID, text, nil)
 }
 

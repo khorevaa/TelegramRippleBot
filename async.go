@@ -47,7 +47,10 @@ func checkTwitter() {
 				log.Print(err)
 			}
 			for _, val := range searchResult {
-				postTweet(val)
+				sendMessage(config.ChannelId,
+					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText,nil)
+				sendMessage(config.ChatId,
+					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText,nil)
 			}
 			if len(searchResult) > 0 {
 				sinceTwitter[val] = searchResult[0].Id
@@ -82,6 +85,8 @@ func checkEverydayPrice() {
 			text = fmt.Sprintf(text, float64WithSign(diff), float64ToString(price))
 
 			sendMessage(config.ChannelId, text, nil)
+			sendMessage(config.ChatId, text, nil)
+			sendAllUsers(tgbotapi.MessageConfig{Text:text})
 			tweet(text)
 			old.Yesterday = price
 			writeJson(&old, "prices.json")
@@ -196,6 +201,8 @@ func checkPeriodsPrice() {
 		}
 		if text != "" {
 			sendMessage(config.ChannelId, text, nil)
+			sendMessage(config.ChatId, text, nil)
+			sendAllUsers(tgbotapi.MessageConfig{Text:text})
 			tweet(text)
 		}
 
@@ -278,6 +285,8 @@ func weeklyRoundUp() {
 				float64ToString(share),
 				float64ToString(market.BitcoinPercentageOfMarketCap))
 			sendMessage(config.ChannelId, text, nil)
+			sendMessage(config.ChatId, text, nil)
+			sendAllUsers(tgbotapi.MessageConfig{Text:text})
 		}
 		time.Sleep(1 * time.Hour)
 	}
@@ -296,7 +305,15 @@ func checkPosts() {
 			d := t1.Sub(t2).Seconds()
 			if d > 0 {
 				sent = true
-				sendPost(&posts[i])
+				if post.Destination == 1{
+					msg := parsePost(&posts[i], config.ChannelId)
+					bot.Send(msg)
+				}else if post.Destination == 2{
+					msg := parsePost(&posts[i], config.ChatId)
+					bot.Send(msg)
+				}else {
+					sendAllUsers(parsePost(&posts[i], 0).(tgbotapi.MessageConfig))
+				}
 			}
 		}
 		if sent {
@@ -305,37 +322,39 @@ func checkPosts() {
 	}
 }
 
-func sendPost(p *PendingPost) {
+func parsePost(p *PendingPost, id int64) tgbotapi.Chattable {
 	var msg tgbotapi.Chattable
+
 	if p.Message.Text != "" {
-		msg = tgbotapi.NewMessage(config.ChannelId, p.Message.Text)
+		msg = tgbotapi.NewMessage(id, p.Message.Text)
 	} else if p.Message.Video != nil {
-		msg = tgbotapi.NewVideoShare(config.ChannelId, p.Message.Video.FileID)
+		msg = tgbotapi.NewVideoShare(id, p.Message.Video.FileID)
 		msg2 := msg.(tgbotapi.VideoConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
 	} else if p.Message.Sticker != nil {
-		msg = tgbotapi.NewStickerShare(config.ChannelId, p.Message.Sticker.FileID)
+		msg = tgbotapi.NewStickerShare(id, p.Message.Sticker.FileID)
 	} else if p.Message.Photo != nil {
-		msg = tgbotapi.NewPhotoShare(config.ChannelId, (*p.Message.Photo)[0].FileID)
+		msg = tgbotapi.NewPhotoShare(id, (*p.Message.Photo)[0].FileID)
 		msg2 := msg.(tgbotapi.PhotoConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
 	} else if p.Message.Document != nil {
-		msg = tgbotapi.NewDocumentShare(config.ChannelId, p.Message.Document.FileID)
+		msg = tgbotapi.NewDocumentShare(id, p.Message.Document.FileID)
 		msg2 := msg.(tgbotapi.DocumentConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
 	} else if p.Message.Audio != nil {
-		msg = tgbotapi.NewAudioShare(config.ChannelId, p.Message.Audio.FileID)
+		msg = tgbotapi.NewAudioShare(id, p.Message.Audio.FileID)
 		msg2 := msg.(tgbotapi.AudioConfig)
 		msg2.Caption = p.Message.Caption
 		msg = msg2
 	} else if p.Message.VideoNote != nil {
-		msg = tgbotapi.NewVideoNoteShare(config.ChannelId, p.Message.VideoNote.Length, p.Message.VideoNote.FileID)
+		msg = tgbotapi.NewVideoNoteShare(id, p.Message.VideoNote.Length,
+			p.Message.VideoNote.FileID)
 	} else if p.Message.Voice != nil {
-		msg = tgbotapi.NewVoiceShare(config.ChannelId, p.Message.Voice.FileID)
+		msg = tgbotapi.NewVoiceShare(id, p.Message.Voice.FileID)
 	}
-	bot.Send(msg)
-	p.PostTime = p.PostTime.Add(time.Duration(p.DelayHours) * time.Hour)
+	p.PostTime = time.Now().Add(time.Duration(p.DelayHours) * time.Hour)
+	return msg
 }

@@ -8,7 +8,7 @@ import (
 
 type Configuration struct {
 	BotToken                                                                           string
-	ChannelId                                                                          int64
+	ChannelId, ChatId                                                                          int64
 	BuySellXRP                                                                         string
 	TwitterAccounts                                                                    []string
 	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
@@ -119,4 +119,5 @@ type PendingPost struct {
 	PostTime time.Time
 	//IsRepeating bool
 	DelayHours float64
+	Destination int64
 }

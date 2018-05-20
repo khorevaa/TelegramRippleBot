@@ -63,7 +63,10 @@ func checkEverydayPrice() {
 			var old Prices
 			readJson(&old, "prices.json")
 
-			price, err := cmc.GetCoinPriceUSD("ripple")
+			price, err := cmc.Price(&cmc.PriceOptions{
+				Symbol:  "XRP",
+				Convert: "USD",
+			})
 			if err != nil {
 				log.Print(err)
 			}
@@ -95,7 +98,10 @@ func checkPeriodsPrice() {
 		var old Prices
 		readJson(&old, "prices.json")
 
-		price, err := cmc.GetCoinPriceUSD("ripple")
+		price, err := cmc.Price(&cmc.PriceOptions{
+			Symbol:  "XRP",
+			Convert: "USD",
+		})
 		if err != nil {
 			log.Print(err)
 		}
@@ -239,11 +245,16 @@ func checkPeriodsPrice() {
 func weeklyRoundUp() {
 	for {
 		if time.Now().Weekday() == time.Sunday && time.Now().Hour() == 10 {
-			coin, err := cmc.GetCoinData("ripple")
+			coin, err := cmc.Ticker(&cmc.TickerOptions{
+				Symbol:  "XRP",
+				Convert: "USD",
+			})
 			if err != nil {
 				log.Print(err)
 			}
-			market, err := cmc.GetGlobalMarketData()
+			market, err := cmc.GlobalMarket(&cmc.GlobalMarketOptions{
+				Convert: "USD",
+			})
 			if err != nil {
 				log.Print(err)
 			}
@@ -253,11 +264,11 @@ func weeklyRoundUp() {
 				"went to %s%% and BTC dominance to" +
 				"%s%%. 👉 Discuss @XRPchats"
 
-			share := coin.MarketCapUSD * 100 / market.TotalMarketCapUSD
+			share := coin.Quotes["USD"].MarketCap * 100 / market.Quotes["USD"].TotalMarketCap
 
 			text = fmt.Sprintf(text,
-				float64ToString(coin.PriceUSD),
-				float64ToString(coin.MarketCapUSD/1000000000),
+				float64ToString(coin.Quotes["USD"].Price),
+				float64ToString(coin.Quotes["USD"].MarketCap/1000000000),
 				float64ToString(share),
 				float64ToString(market.BitcoinPercentageOfMarketCap))
 			sendMessage(config.ChannelId, text, nil)

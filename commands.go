@@ -4,6 +4,7 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"strings"
 	cmc "github.com/coincircle/go-coinmarketcap"
+	"github.com/coincircle/go-coinmarketcap/types"
 	"log"
 	"fmt"
 	"time"
@@ -58,11 +59,14 @@ func balance(message *tgbotapi.Message) {
 		text += "*" + name + "*: " + float64ToString(bal) + " XRP\n"
 	}
 	text += "\nEstimated worth:\n"
-	coin, err := cmc.GetCoinData("ripple")
+	price, err := cmc.Price(&cmc.PriceOptions{
+		Symbol:  "XRP",
+		Convert: "USD",
+	})
 	if err != nil {
 		log.Print(err)
 	}
-	text += float64ToString(coin.PriceUSD*sum) + " USD\n"
+	text += float64ToString(price*sum) + " USD\n"
 	text += "👉 [Buy/Sell XRP](" + config.BuySellXRP + ")" + " - XRP /stats"
 
 	sendMessage(message.Chat.ID, text, nil)
@@ -70,11 +74,15 @@ func balance(message *tgbotapi.Message) {
 
 func index(message *tgbotapi.Message) {
 	var text string
-	coins, err := cmc.GetAllCoinData(10)
+	coins, err := cmc.Tickers(&cmc.TickersOptions{
+		Start:   0,
+		Limit:   10,
+		Convert: "USD",
+	})
 	if err != nil {
 		log.Print(err)
 	}
-	newMap := make(map[int]cmc.Coin)
+	newMap := make(map[int]*types.Ticker)
 	for _, coin := range coins {
 		newMap[coin.Rank] = coin
 	}
@@ -85,8 +93,8 @@ func index(message *tgbotapi.Message) {
 		number++
 		numberStr := numberEmojis[number]
 		currText = numberStr + " " + newMap[number].Symbol + " " +
-			float64ToString(newMap[number].PriceUSD) + " USD _(" +
-			float64WithSign(newMap[number].PercentChange24H) + "%)_\n"
+			float64ToString(newMap[number].Quotes["USD"].Price) + " USD _(" +
+			float64WithSign(newMap[number].Quotes["USD"].PercentChange24H) + "%)_\n"
 
 		if newMap[number].Name == "Ripple" {
 			currText = "*" + currText + "*"
@@ -112,14 +120,17 @@ func priceCoin(message *tgbotapi.Message) {
 	fields := strings.Fields(message.Text)
 	ticker := getCurrency(fields[1])
 	if ticker != "" {
-		coin, err := cmc.GetCoinData(ticker)
+		coin, err := cmc.Ticker(&cmc.TickerOptions{
+			Symbol:  ticker,
+			Convert: "USD",
+		})
 		if err != nil {
 			log.Print(err)
 		}
 
-		text = "*" + coin.Symbol + " = " + float64ToString(coin.PriceUSD) + " USD* " +
-			float64WithSign(coin.PercentChange24H) + "% _(24h)_" + "\n\n" +
-			float64WithSign(coin.PercentChange7D) + "% _(7d)_"
+		text = "*" + coin.Symbol + " = " + float64ToString(coin.Quotes["USD"].Price) + " USD* " +
+			float64WithSign(coin.Quotes["USD"].PercentChange24H) + "% _(24h)_" + "\n\n" +
+			float64WithSign(coin.Quotes["USD"].PercentChange7D) + "% _(7d)_"
 
 	} else {
 		text = phrases[5]
@@ -129,14 +140,17 @@ func priceCoin(message *tgbotapi.Message) {
 }
 
 func priceXrp(message *tgbotapi.Message) {
-	coin, err := cmc.GetCoinData("ripple")
+	coin, err := cmc.Ticker(&cmc.TickerOptions{
+		Symbol:  "XRP",
+		Convert: "USD",
+	})
 	if err != nil {
 		log.Print(err)
 	}
 
-	text := "*XRP = " + float64ToString(coin.PriceUSD) + " USD* " +
-		float64WithSign(coin.PercentChange24H) + "% _(24h)_" + "\n\n" +
-		float64WithSign(coin.PercentChange7D) + "% _(7d)_" +
+	text := "*XRP = " + float64ToString(coin.Quotes["USD"].Price) + " USD* " +
+		float64WithSign(coin.Quotes["USD"].PercentChange24H) + "% _(24h)_" + "\n\n" +
+		float64WithSign(coin.Quotes["USD"].PercentChange7D) + "% _(7d)_" +
 		"\n\n📈 view /chart or more XRP /stats \n" + "👉 [Buy/Sell XRP](" + config.BuySellXRP + ")"
 	sendMessage(message.Chat.ID, text, nil)
 }
@@ -171,6 +185,7 @@ func chart24h(message *tgbotapi.Message) {
 		}
 	} else {
 		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache24h.PhotoId)
+		photo.Caption = cache24h.Stats
 		sendPhoto(photo)
 	}
 }
@@ -189,24 +204,30 @@ func chart30d(message *tgbotapi.Message) {
 		}
 	} else {
 		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache30d.PhotoId)
+		photo.Caption = cache30d.Stats
 		sendPhoto(photo)
 	}
 }
 
 func stats(message *tgbotapi.Message) {
-	coin, err := cmc.GetCoinData("ripple")
+	coin, err := cmc.Ticker(&cmc.TickerOptions{
+		Symbol:  "XRP",
+		Convert: "USD",
+	})
 	if err != nil {
 		log.Print(err)
 	}
-	market, err := cmc.GetGlobalMarketData()
+	market, err := cmc.GlobalMarket(&cmc.GlobalMarketOptions{
+		Convert: "USD",
+	})
 	if err != nil {
 		log.Print(err)
 	}
 
-	text := "Last price: " + float64ToString(coin.PriceUSD) + " USD _(" +
-		float64WithSign(coin.PercentChange24H) + "% last 24h)_\n"
-	text += "Market cap: " + float64ToString(coin.MarketCapUSD/1000000000) + " bln USD\n"
-	share := coin.MarketCapUSD * 100 / market.TotalMarketCapUSD
+	text := "Last price: " + float64ToString(coin.Quotes["USD"].Price) + " USD _(" +
+		float64WithSign(coin.Quotes["USD"].PercentChange24H) + "% last 24h)_\n"
+	text += "Market cap: " + float64ToString(coin.Quotes["USD"].MarketCap/1000000000) + " bln USD\n"
+	share := coin.Quotes["USD"].MarketCap * 100 / market.Quotes["USD"].TotalMarketCap
 	text += "Market share: " + float64ToString(share) + "%\n"
 	text += "BTC dominance: " + float64ToString(market.BitcoinPercentageOfMarketCap) + "%"
 
@@ -238,7 +259,9 @@ func newPost(message *tgbotapi.Message) {
 }
 
 func deletePost(message *tgbotapi.Message) {
-
+	if !containsInt64(config.AdminIds, message.Chat.ID) {
+		return
+	}
 	var posts []PendingPost
 	readJson(&posts, "posts.json")
 	fields := strings.Fields(message.Text)
@@ -250,9 +273,13 @@ func deletePost(message *tgbotapi.Message) {
 		}
 	}
 	writeJson(&posts, "posts.json")
+	sendMessage(message.Chat.ID, phrases[12], nil)
 }
 
 func pendingPosts(message *tgbotapi.Message) {
+	if !containsInt64(config.AdminIds, message.Chat.ID) {
+		return
+	}
 	var posts []PendingPost
 	readJson(&posts, "posts.json")
 	var text string

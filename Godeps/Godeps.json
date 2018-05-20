@@ -4,14 +4,52 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
+			"ImportPath": "github.com/ChimeraCoder/anaconda",
+			"Comment": "v2.0.0-7-ga1f4899",
+			"Rev": "a1f48994eee061428eadcac94cf5fe98dbab0967"
+		},
+		{
+			"ImportPath": "github.com/ChimeraCoder/tokenbucket",
+			"Rev": "c5a927568de7aad8a58127d80bcd36ca4e71e454"
+		},
+		{
+			"ImportPath": "github.com/anaskhan96/soup",
+			"Comment": "v1.1",
+			"Rev": "cd07662ec9300d16d2ece1c24b0b29ad89f65ff4"
+		},
+		{
+			"ImportPath": "github.com/azr/backoff",
+			"Rev": "53511d3c733003985b0b76f733df1f4d0095ee6a"
+		},
+		{
+			"ImportPath": "github.com/coincircle/go-coinmarketcap",
+			"Rev": "8576053ecf9cc53320ac1025732144db6a9ddd3b"
+		},
+		{
+			"ImportPath": "github.com/coincircle/go-coinmarketcap/types",
+			"Rev": "8576053ecf9cc53320ac1025732144db6a9ddd3b"
+		},
+		{
+			"ImportPath": "github.com/dustin/go-jsonpointer",
+			"Rev": "ba0abeacc3dcca5b9b20f31509c46794edbc9965"
+		},
+		{
+			"ImportPath": "github.com/dustin/gojson",
+			"Rev": "2e71ec9dd5adce3b168cd0dbde03b5cc04951c30"
+		},
+		{
 			"ImportPath": "github.com/fogleman/gg",
 			"Comment": "v1.0.0-11-ge611489",
 			"Rev": "e611489b8685808726d3f603571b763982d92f67"
 		},
 		{
+			"ImportPath": "github.com/garyburd/go-oauth/oauth",
+			"Rev": "bca2e7f09a178fd36b034107a00e2323bca6a82e"
+		},
+		{
 			"ImportPath": "github.com/go-telegram-bot-api/telegram-bot-api",
-			"Comment": "v4.6.2",
-			"Rev": "0e0af0c480ea98e982d5f4d45fb39577c6ab1e3e"
+			"Comment": "v4.6.2-4-g212b154",
+			"Rev": "212b1541150cbfcc268fbeb3b15c14383e638409"
 		},
 		{
 			"ImportPath": "github.com/golang/freetype/raster",
@@ -84,6 +122,14 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
+			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
 			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
 		}
 	]

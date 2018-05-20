@@ -11,13 +11,16 @@ import (
 )
 
 func getRippleStats() string {
-	coin, err := cmc.GetCoinData("Ripple")
+	coin, err := cmc.Ticker(&cmc.TickerOptions{
+		Symbol:  "XRP",
+		Convert: "USD",
+	})
 	if err != nil {
 		log.Print(err)
 	}
-	return "Price: " + float64ToString(coin.PriceUSD) + " USD\nVolume: " +
-		float64ToString(coin.USD24HVolume) + " USD\nCapitalization: " +
-		float64ToString(coin.MarketCapUSD) + " USD"
+	return "Price: " + float64ToString(coin.Quotes["USD"].Price) + " USD\nVolume: " +
+		float64ToString(coin.Quotes["USD"].Volume24H/1000000) + " mln USD\nCapitalization: " +
+		float64ToString(coin.Quotes["USD"].MarketCap/1000000000) + " bln USD"
 }
 
 func checkAddress(a string) bool {
@@ -34,7 +37,7 @@ func getCurrency(name string) string {
 	for _, listing := range listings {
 		if strings.ToLower(listing.Name) == strings.ToLower(name) ||
 			strings.ToLower(listing.Symbol) == strings.ToLower(name) {
-			return listing.Name
+			return listing.Symbol
 		}
 	}
 	return ""

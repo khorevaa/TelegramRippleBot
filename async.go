@@ -61,36 +61,55 @@ func checkTwitter() {
 	}
 }
 
+var chatCounter, channelCounter, usersCounter, twitterCounter int
+
 func checkPrice() {
 	for {
-		var old Prices
-		readJson(&old, "prices.json")
+		if chatCounter+1 == config.ChatHours ||
+			channelCounter+1 == config.ChannelHours ||
+			usersCounter+1 == config.UsersHours ||
+			twitterCounter+1 == config.TwitterHours {
+			var old Prices
+			readJson(&old, "prices.json")
 
-		coin, err := cmc.Ticker(&cmc.TickerOptions{
-			Symbol:  "XRP",
-			Convert: "USD",
-		})
-		if err != nil {
-			log.Print(err)
+			coin, err := cmc.Ticker(&cmc.TickerOptions{
+				Symbol:  "XRP",
+				Convert: "USD",
+			})
+			if err != nil {
+				log.Print(err)
+			}
+
+			var text string
+			if coin.Quotes["USD"].PercentChange24H >= 0 {
+				text = "🚀 XRP is up *%s%%* in the last 24h and is now trading @ *%s USD*"
+			} else {
+				text = "📉 XRP is down *%s%%* in the last 24h and is now trading @ *%s USD*"
+			}
+
+			text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
+				float64ToString(coin.Quotes["USD"].Price))
+			if channelCounter+1 == config.ChannelHours {
+				sendMessage(config.ChannelId, text, nil)
+			}
+			if chatCounter+1 == config.ChatHours {
+				sendMessage(config.ChatId, text, nil)
+			}
+			if usersCounter+1 == config.UsersHours {
+				go sendAllUsers(tgbotapi.MessageConfig{Text: text,
+					BaseChat: tgbotapi.BaseChat{ReplyMarkup: &priceKeyboard}})
+			}
+			if twitterCounter+1 == config.TwitterHours {
+				text = strings.Replace(text, "*", "", -1)
+				tweet(text)
+			}
+			writeJson(&old, "prices.json")
 		}
-
-		var text string
-		if coin.Quotes["USD"].PercentChange24H >= 0 {
-			text = "🚀 XRP is up *%s%%* in the last 24h and is now trading @ *%s USD*"
-		} else {
-			text = "📉 XRP is down *%s%%* in the last 24h and is now trading @ *%s USD*"
-		}
-
-		text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
-			float64ToString(coin.Quotes["USD"].Price))
-
-		sendMessage(config.ChannelId, text, nil)
-		sendMessage(config.ChatId, text, nil)
-		sendAllUsers(tgbotapi.MessageConfig{Text: text})
-		text = strings.Replace(text, "*", "", -1)
-		tweet(text)
-		writeJson(&old, "prices.json")
-		time.Sleep(6 * time.Hour)
+		chatCounter++
+		channelCounter++
+		usersCounter++
+		twitterCounter++
+		time.Sleep(1 * time.Hour)
 	}
 }
 

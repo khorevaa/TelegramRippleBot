@@ -17,6 +17,7 @@ type Configuration struct {
 	BittrexChartURL                                                                    string
 	CoinMarketCapListings                                                              string
 	AdminIds                                                                           []int64
+	ChannelHours, ChatHours, UsersHours, TwitterHours int
 }
 
 type User struct {

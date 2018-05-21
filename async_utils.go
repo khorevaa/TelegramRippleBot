@@ -78,9 +78,9 @@ func sendNotifications(txs []Transaction, wallet Wallet) {
 				log.Print(err)
 			}
 			text += float64ToString(price*decBalance) + " USD\n"
-			*txLinksKeyboard.InlineKeyboard[0][0].URL =
+			*txKeyboard.InlineKeyboard[0][0].URL =
 				"https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
-			sendMessage(user.ID, text, txLinksKeyboard)
+			sendMessage(user.ID, text, txKeyboard)
 		}
 
 	}

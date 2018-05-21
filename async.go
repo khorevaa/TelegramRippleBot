@@ -7,6 +7,7 @@ import (
 	cmc "github.com/coincircle/go-coinmarketcap"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"strings"
 )
 
 func checkTransactions() {
@@ -65,7 +66,7 @@ func checkPrice() {
 		var old Prices
 		readJson(&old, "prices.json")
 
-		price, err := cmc.Price(&cmc.PriceOptions{
+		coin, err := cmc.Ticker(&cmc.TickerOptions{
 			Symbol:  "XRP",
 			Convert: "USD",
 		})
@@ -74,18 +75,19 @@ func checkPrice() {
 		}
 
 		var text string
-		diff := price - old.Highs.Week[len(old.Highs.Week)-1]
-		if diff >= 0 {
-			text = "🚀 XRP is up %s%% the last 24h and is now trading @ %s USD."
+		if coin.Quotes["USD"].PercentChange24H >= 0 {
+			text = "🚀 XRP is up *%s%%* in the last 24h and is now trading @ *%s USD*"
 		} else {
-			text = "📉 XRP is down %s%% the last 24h and is now trading @ %s USD."
+			text = "📉 XRP is down *%s%%* in the last 24h and is now trading @ *%s USD*"
 		}
 
-		text = fmt.Sprintf(text, float64WithSign(diff), float64ToString(price))
+		text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
+			float64ToString(coin.Quotes["USD"].Price))
 
 		sendMessage(config.ChannelId, text, nil)
 		sendMessage(config.ChatId, text, nil)
 		sendAllUsers(tgbotapi.MessageConfig{Text: text})
+		text = strings.Replace(text, "*", "", -1)
 		tweet(text)
 		writeJson(&old, "prices.json")
 		time.Sleep(6 * time.Hour)

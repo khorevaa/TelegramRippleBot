@@ -70,6 +70,7 @@ func sendAllUsers(msg tgbotapi.MessageConfig){
 		var user User
 		db.ScanRows(rows, &user)
 		msg.ChatID = user.ID
+		msg.ParseMode = tgbotapi.ModeMarkdown
 		bot.Send(msg)
 	}
 }

@@ -66,7 +66,7 @@ func balance(message *tgbotapi.Message) {
 		log.Print(err)
 	}
 	text += fmt.Sprintf(phrases[16], float64ToString(price*sum))
-	sendMessage(message.Chat.ID, text, infoLinksKeyboard)
+	sendMessage(message.Chat.ID, text, balanceKeyboard)
 }
 
 func index(message *tgbotapi.Message) {
@@ -99,7 +99,7 @@ func index(message *tgbotapi.Message) {
 		}
 		text += currText
 	}
-	sendMessage(message.Chat.ID, text, nil)
+	sendMessage(message.Chat.ID, text, indexKeyboard)
 }
 
 func price(message *tgbotapi.Message) {
@@ -151,7 +151,7 @@ func priceXrp(message *tgbotapi.Message) {
 		float64WithSign(coin.Quotes["USD"].PercentChange24H),
 		float64WithSign(coin.Quotes["USD"].PercentChange7D))
 
-	sendMessage(message.Chat.ID, text, infoLinksKeyboard)
+	sendMessage(message.Chat.ID, text, priceKeyboard)
 }
 
 func chart(message *tgbotapi.Message) {
@@ -227,10 +227,11 @@ func stats(message *tgbotapi.Message) {
 
 	text := fmt.Sprintf(phrases[18],float64ToString(coin.Quotes["USD"].Price),
 		float64WithSign(coin.Quotes["USD"].PercentChange24H),
+		float64ToString(coin.Quotes["USD"].Volume24H/1000000),
 		float64ToString(coin.Quotes["USD"].MarketCap/1000000000),
 		float64ToString(share),
 		float64ToString(market.BitcoinPercentageOfMarketCap))
-	sendMessage(message.Chat.ID, text, nil)
+	sendMessage(message.Chat.ID, text, statsKeyboard)
 }
 
 func currency(message *tgbotapi.Message) {

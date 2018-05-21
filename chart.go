@@ -276,6 +276,7 @@ func getCandlesBittrex(pair, period string) []Candle {
 		resp, err = http.Get(fmt.Sprintf(config.BittrexChartURL, period, pair))
 		if err != nil {
 			log.Print(err)
+			continue
 		}
 		json.NewDecoder(resp.Body).Decode(&response)
 		resp.Body.Close()

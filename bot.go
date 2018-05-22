@@ -84,6 +84,7 @@ func main() {
 
 	for update := range updates {
 		if update.Message != nil {
+			log.Printf("[%s] %s ", update.Message.From.FirstName, update.Message.Text)
 			if update.Message.IsCommand() {
 				command := update.Message.Command()
 				switch command {

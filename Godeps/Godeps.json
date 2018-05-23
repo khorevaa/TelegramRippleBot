@@ -22,6 +22,10 @@
 			"Rev": "53511d3c733003985b0b76f733df1f4d0095ee6a"
 		},
 		{
+			"ImportPath": "github.com/botanio/sdk/go",
+			"Rev": "8ba83ba5c10ac34c4d8ef96b9693e41024e2d05b"
+		},
+		{
 			"ImportPath": "github.com/coincircle/go-coinmarketcap",
 			"Rev": "8576053ecf9cc53320ac1025732144db6a9ddd3b"
 		},
@@ -45,11 +49,6 @@
 		{
 			"ImportPath": "github.com/garyburd/go-oauth/oauth",
 			"Rev": "bca2e7f09a178fd36b034107a00e2323bca6a82e"
-		},
-		{
-			"ImportPath": "github.com/go-telegram-bot-api/telegram-bot-api",
-			"Comment": "v4.6.2-4-g212b154",
-			"Rev": "212b1541150cbfcc268fbeb3b15c14383e638409"
 		},
 		{
 			"ImportPath": "github.com/golang/freetype/raster",
@@ -96,6 +95,11 @@
 			"Rev": "05fbef0ca5da472bbf96c9322b84a53edc03c9fd"
 		},
 		{
+			"ImportPath": "github.com/rockneurotiko/gorequest",
+			"Comment": "v0.2.4-72-gb232713",
+			"Rev": "b232713e2cb2bbff22aaee93bfc94d0d1ceba115"
+		},
+		{
 			"ImportPath": "github.com/technoweenie/multipartstreamer",
 			"Comment": "v1.0.1",
 			"Rev": "a90a01d73ae432e2611d178c18367fbaa13e0154"
@@ -131,6 +135,15 @@
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
 			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
+		},
+		{
+			"ImportPath": "golang.org/x/net/publicsuffix",
+			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
+		},
+		{
+			"ImportPath": "telegram-bot-api",
+			"Comment": "v4.6.2-5-g6066868",
+			"Rev": "60668682f7b5f75cdc0abde06b9fb00f30783570"
 		}
 	]
 }

@@ -101,6 +101,7 @@ func checkPrice() {
 			}
 			if twitterCounter+1 == config.TwitterHours {
 				text = strings.Replace(text, "*", "", -1)
+				text = strings.Replace(text, " ", " $", 1)
 				tweet(text)
 			}
 			writeJson(&old, "prices.json")

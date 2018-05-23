@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"telegram-bot-api"
 	"log"
 	"os"
 	"io"
@@ -32,6 +32,7 @@ var (
 	statsKeyboard   tgbotapi.InlineKeyboardMarkup
 	indexKeyboard   tgbotapi.InlineKeyboardMarkup
 	balanceKeyboard tgbotapi.InlineKeyboardMarkup
+	chartKeyboard tgbotapi.InlineKeyboardMarkup
 	numberEmojis                = map[int]string{
 		1:  "1⃣",
 		2:  "2️⃣",
@@ -189,6 +190,13 @@ func initKeyboard() {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
 			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
+			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+		),
+	)
+	chartKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
+			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
 		),
 	)

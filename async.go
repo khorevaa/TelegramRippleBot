@@ -6,7 +6,7 @@ import (
 	"net/url"
 	cmc "github.com/coincircle/go-coinmarketcap"
 	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"telegram-bot-api"
 	"strings"
 )
 

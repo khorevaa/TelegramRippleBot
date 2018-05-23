@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"telegram-bot-api"
 )
 
 type Configuration struct {

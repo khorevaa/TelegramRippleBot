@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	cmc "github.com/coincircle/go-coinmarketcap"
 	"strings"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"telegram-bot-api"
 	"time"
 )
 
@@ -18,9 +18,7 @@ func getRippleStats() string {
 	if err != nil {
 		log.Print(err)
 	}
-	return "Price: " + float64ToString(coin.Quotes["USD"].Price) + " USD\nVolume: " +
-		float64ToString(coin.Quotes["USD"].Volume24H/1000000) + " mn USD\nCapitalization: " +
-		float64ToString(coin.Quotes["USD"].MarketCap/1000000000) + " bn USD"
+	return "*Price:* " + float64ToString(coin.Quotes["USD"].Price) + " USD"
 }
 
 func checkAddress(a string) bool {

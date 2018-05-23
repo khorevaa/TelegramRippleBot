@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"telegram-bot-api"
 	"strings"
 	cmc "github.com/coincircle/go-coinmarketcap"
 	"github.com/coincircle/go-coinmarketcap/types"
@@ -178,13 +178,17 @@ func chart24h(message *tgbotapi.Message) {
 		cache24h.Time = time.Now()
 		cache24h.Stats = getRippleStats()
 		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-thirtyMin.png")
-		photo.Caption = cache24h.Stats
+		photo.Caption = "*XRP Chart* (24h) | " + cache24h.Stats
+		photo.ParseMode = tgbotapi.ModeMarkdown
+		photo.BaseChat.ReplyMarkup = &chartKeyboard
 		if id := sendPhoto(photo); id != "" {
 			cache24h.PhotoId = id
 		}
 	} else {
 		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache24h.PhotoId)
-		photo.Caption = cache24h.Stats
+		photo.Caption = "*XRP Chart* (24h) | " + cache24h.Stats
+		photo.ParseMode = tgbotapi.ModeMarkdown
+		photo.BaseChat.ReplyMarkup = &chartKeyboard
 		sendPhoto(photo)
 	}
 }
@@ -197,13 +201,17 @@ func chart30d(message *tgbotapi.Message) {
 		cache30d.Time = time.Now()
 		cache30d.Stats = getRippleStats()
 		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-day.png")
-		photo.Caption = cache30d.Stats
+		photo.Caption = "*XRP Chart* (30d) | " + cache30d.Stats
+		photo.ParseMode = tgbotapi.ModeMarkdown
+		photo.BaseChat.ReplyMarkup = &chartKeyboard
 		if id := sendPhoto(photo); id != "" {
 			cache30d.PhotoId = id
 		}
 	} else {
 		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache30d.PhotoId)
-		photo.Caption = cache30d.Stats
+		photo.Caption = "*XRP Chart* (30d) | " + cache30d.Stats
+		photo.ParseMode = tgbotapi.ModeMarkdown
+		photo.BaseChat.ReplyMarkup = &chartKeyboard
 		sendPhoto(photo)
 	}
 }

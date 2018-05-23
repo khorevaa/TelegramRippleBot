@@ -33,6 +33,7 @@ var (
 	indexKeyboard   tgbotapi.InlineKeyboardMarkup
 	balanceKeyboard tgbotapi.InlineKeyboardMarkup
 	chartKeyboard tgbotapi.InlineKeyboardMarkup
+	yesNoKeyboard tgbotapi.InlineKeyboardMarkup
 	numberEmojis                = map[int]string{
 		1:  "1⃣",
 		2:  "2️⃣",
@@ -132,6 +133,10 @@ func main() {
 				start(update.CallbackQuery.Message)
 			case "chart":
 				chart24h(update.CallbackQuery.Message)
+			case "yes":
+				resetWalletsYes(update.CallbackQuery.Message)
+			case "no":
+				resetWalletsNo(update.CallbackQuery.Message)
 			}
 			bot.AnswerCallbackQuery(tgbotapi.CallbackConfig{update.CallbackQuery.ID, "", false, "", 0})
 		}
@@ -198,6 +203,12 @@ func initKeyboard() {
 			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+		),
+	)
+	yesNoKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Yes", "yes"),
+			tgbotapi.NewInlineKeyboardButtonData("No", "no"),
 		),
 	)
 }

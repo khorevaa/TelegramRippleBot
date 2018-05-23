@@ -31,9 +31,15 @@ func stringToFloat64(s string) float64 {
 }
 
 func float64ToString(f float64) string {
+	s := strconv.FormatFloat(f, 'f', 2, 64)
+	return s
+}
+
+func float64ToStringPrec3(f float64) string {
 	s := strconv.FormatFloat(f, 'f', 3, 64)
 	return s
 }
+
 
 func float64WithSign(f float64) string {
 	if f >= 0 {

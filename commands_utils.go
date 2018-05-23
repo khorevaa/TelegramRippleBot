@@ -18,7 +18,7 @@ func getRippleStats() string {
 	if err != nil {
 		log.Print(err)
 	}
-	return "*Price:* " + float64ToString(coin.Quotes["USD"].Price) + " USD"
+	return "*Price:* " + float64ToStringPrec3(coin.Quotes["USD"].Price) + " USD"
 }
 
 func checkAddress(a string) bool {

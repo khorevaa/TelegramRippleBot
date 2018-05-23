@@ -33,8 +33,14 @@ func addWallet(message *tgbotapi.Message) {
 }
 
 func resetWallets(message *tgbotapi.Message) {
+	sendMessage(message.Chat.ID, phrases[21], yesNoKeyboard)
+}
+func resetWalletsYes(message *tgbotapi.Message) {
 	resetWalletsDB(message)
 	sendMessage(message.Chat.ID, phrases[2], nil)
+}
+func resetWalletsNo(message *tgbotapi.Message) {
+	sendMessage(message.Chat.ID, phrases[22], nil)
 }
 
 func balance(message *tgbotapi.Message) {
@@ -126,7 +132,7 @@ func priceCoin(message *tgbotapi.Message) {
 		}
 
 		text = fmt.Sprintf(phrases[17], coin.Symbol,
-			float64ToString(coin.Quotes["USD"].Price),
+			float64ToStringPrec3(coin.Quotes["USD"].Price),
 			float64WithSign(coin.Quotes["USD"].PercentChange24H),
 			float64WithSign(coin.Quotes["USD"].PercentChange7D))
 
@@ -147,7 +153,7 @@ func priceXrp(message *tgbotapi.Message) {
 	}
 
 	text := fmt.Sprintf(phrases[17], "XRP",
-		float64ToString(coin.Quotes["USD"].Price),
+		float64ToStringPrec3(coin.Quotes["USD"].Price),
 		float64WithSign(coin.Quotes["USD"].PercentChange24H),
 		float64WithSign(coin.Quotes["USD"].PercentChange7D))
 

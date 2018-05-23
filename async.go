@@ -88,7 +88,7 @@ func checkPrice() {
 			}
 
 			text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
-				float64ToString(coin.Quotes["USD"].Price))
+				float64ToStringPrec3(coin.Quotes["USD"].Price))
 			if channelCounter+1 == config.ChannelHours {
 				sendMessage(config.ChannelId, text, nil)
 			}
@@ -171,7 +171,7 @@ func checkPeriodsPrice() {
 			//post allTime
 			text += "all-time"
 		}
-		text += fmt.Sprintf(" high @ %s USD", float64ToString(price))
+		text += fmt.Sprintf(" high @ %s USD", float64ToStringPrec3(price))
 
 		if !allTimeHigh && !threeMonthsHigh && !monthHigh && !weekHigh {
 			//LOWS CHECK
@@ -212,7 +212,7 @@ func checkPeriodsPrice() {
 			if weekLow == false {
 				text = ""
 			} else {
-				text += fmt.Sprintf(" low @ %s USD", float64ToString(price))
+				text += fmt.Sprintf(" low @ %s USD", float64ToStringPrec3(price))
 			}
 		}
 		if text != "" {
@@ -296,7 +296,7 @@ func weeklyRoundUp() {
 			share := coin.Quotes["USD"].MarketCap * 100 / market.Quotes["USD"].TotalMarketCap
 
 			text = fmt.Sprintf(text,
-				float64ToString(coin.Quotes["USD"].Price),
+				float64ToStringPrec3(coin.Quotes["USD"].Price),
 				float64ToString(coin.Quotes["USD"].MarketCap/1000000000),
 				float64ToString(share),
 				float64ToString(market.BitcoinPercentageOfMarketCap))

@@ -7,7 +7,7 @@ import (
 )
 
 type Configuration struct {
-	BotToken                                                                           string
+	BotToken, MetricToken                                                                           string
 	ChannelId, ChatId                                                                          int64
 	BuySellXRP                                                                         string
 	TwitterAccounts                                                                    []string

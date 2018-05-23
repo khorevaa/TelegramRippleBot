@@ -12,12 +12,14 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"net/url"
 	"net/http"
+	"github.com/botanio/sdk/go"
 )
 
 var (
 	bot          *tgbotapi.BotAPI
 	config       Configuration
 	db           *gorm.DB
+	botanMetric  botan.Botan
 	phrases      map[int]string
 	cache24h     CachedStats
 	cache30d     CachedStats
@@ -32,9 +34,9 @@ var (
 	statsKeyboard   tgbotapi.InlineKeyboardMarkup
 	indexKeyboard   tgbotapi.InlineKeyboardMarkup
 	balanceKeyboard tgbotapi.InlineKeyboardMarkup
-	chartKeyboard tgbotapi.InlineKeyboardMarkup
-	yesNoKeyboard tgbotapi.InlineKeyboardMarkup
-	numberEmojis                = map[int]string{
+	chartKeyboard   tgbotapi.InlineKeyboardMarkup
+	yesNoKeyboard   tgbotapi.InlineKeyboardMarkup
+	numberEmojis    = map[int]string{
 		1:  "1⃣",
 		2:  "2️⃣",
 		3:  "3️⃣",
@@ -55,6 +57,7 @@ var (
 func main() {
 	initLog()
 	initConfig()
+	initBotan()
 	initStrings()
 	initKeyboard()
 	initDB()
@@ -88,6 +91,10 @@ func main() {
 		if update.Message != nil {
 			log.Printf("[%s] %s ", update.Message.From.FirstName, update.Message.Text)
 			if update.Message.IsCommand() {
+				botanMetric.TrackAsync(update.Message.From.ID,
+					*update.Message,
+					update.Message.Text,
+					postMetric)
 				command := update.Message.Command()
 				switch command {
 				case "start":
@@ -157,6 +164,11 @@ func initLog() {
 
 func initConfig() {
 	readJson(&config, "config.json")
+}
+
+func initBotan() {
+	botanMetric = botan.New(config.MetricToken)
+	log.Print("Inited Botan")
 }
 
 func initStrings() {
@@ -269,4 +281,8 @@ func initListings() {
 
 	str := json.Get(bodyBytes, "data").ToString()
 	json.UnmarshalFromString(str, &listings)
+}
+
+func postMetric(ans botan.Answer, err []error) {
+	log.Printf("AppMetric: %+v. Error: %v\n", ans, err)
 }

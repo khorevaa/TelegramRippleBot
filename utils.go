@@ -31,7 +31,7 @@ func stringToFloat64(s string) float64 {
 }
 
 func float64ToString(f float64) string {
-	s := strconv.FormatFloat(f, 'f', 2, 64)
+	s := strconv.FormatFloat(f, 'f', 3, 64)
 	return s
 }
 

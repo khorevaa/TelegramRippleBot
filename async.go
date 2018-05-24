@@ -80,9 +80,9 @@ func checkPrice() {
 
 			var text string
 			if coin.Quotes["USD"].PercentChange24H >= 0 {
-				text = "🚀 XRP is up *%s%%* in the last 24h and is now trading @ *%s USD*"
+				text = phrases[23]
 			} else {
-				text = "📉 XRP is down *%s%%* in the last 24h and is now trading @ *%s USD*"
+				text = phrases[24]
 			}
 
 			text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),

@@ -76,7 +76,7 @@ func balance(message *tgbotapi.Message) {
 }
 
 func index(message *tgbotapi.Message) {
-	var text string
+	text := "*Top 10 Cryptocurrencies*\n_(by Market Cap)_"
 	coins, err := cmc.Tickers(&cmc.TickersOptions{
 		Start:   0,
 		Limit:   10,
@@ -184,17 +184,17 @@ func chart24h(message *tgbotapi.Message) {
 		cache24h.Time = time.Now()
 		cache24h.Stats = getRippleStats()
 		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-thirtyMin.png")
-		photo.Caption = "*XRP Chart* (24h) | " + cache24h.Stats
+		photo.Caption = "*XRP* (24h) | " + cache24h.Stats
 		photo.ParseMode = tgbotapi.ModeMarkdown
-		photo.BaseChat.ReplyMarkup = &chartKeyboard
+		photo.BaseChat.ReplyMarkup = &chart24hKeyboard
 		if id := sendPhoto(photo); id != "" {
 			cache24h.PhotoId = id
 		}
 	} else {
 		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache24h.PhotoId)
-		photo.Caption = "*XRP Chart* (24h) | " + cache24h.Stats
+		photo.Caption = "*XRP* (24h) | " + cache24h.Stats
 		photo.ParseMode = tgbotapi.ModeMarkdown
-		photo.BaseChat.ReplyMarkup = &chartKeyboard
+		photo.BaseChat.ReplyMarkup = &chart24hKeyboard
 		sendPhoto(photo)
 	}
 }
@@ -207,17 +207,17 @@ func chart30d(message *tgbotapi.Message) {
 		cache30d.Time = time.Now()
 		cache30d.Stats = getRippleStats()
 		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-day.png")
-		photo.Caption = "*XRP Chart* (30d) | " + cache30d.Stats
+		photo.Caption = "*XRP* (30d) | " + cache30d.Stats
 		photo.ParseMode = tgbotapi.ModeMarkdown
-		photo.BaseChat.ReplyMarkup = &chartKeyboard
+		photo.BaseChat.ReplyMarkup = &chart30dKeyboard
 		if id := sendPhoto(photo); id != "" {
 			cache30d.PhotoId = id
 		}
 	} else {
 		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache30d.PhotoId)
-		photo.Caption = "*XRP Chart* (30d) | " + cache30d.Stats
+		photo.Caption = "*XRP* (30d) | " + cache30d.Stats
 		photo.ParseMode = tgbotapi.ModeMarkdown
-		photo.BaseChat.ReplyMarkup = &chartKeyboard
+		photo.BaseChat.ReplyMarkup = &chart30dKeyboard
 		sendPhoto(photo)
 	}
 }

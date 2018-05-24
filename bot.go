@@ -34,7 +34,8 @@ var (
 	statsKeyboard   tgbotapi.InlineKeyboardMarkup
 	indexKeyboard   tgbotapi.InlineKeyboardMarkup
 	balanceKeyboard tgbotapi.InlineKeyboardMarkup
-	chartKeyboard   tgbotapi.InlineKeyboardMarkup
+	chart30dKeyboard   tgbotapi.InlineKeyboardMarkup
+	chart24hKeyboard   tgbotapi.InlineKeyboardMarkup
 	yesNoKeyboard   tgbotapi.InlineKeyboardMarkup
 	numberEmojis    = map[int]string{
 		1:  "1⃣",
@@ -138,8 +139,10 @@ func main() {
 				stats(update.CallbackQuery.Message)
 			case "help":
 				start(update.CallbackQuery.Message)
-			case "chart":
-				chart24h(update.CallbackQuery.Message)
+			case "chart 30d", "chart 24h":
+				m := update.CallbackQuery.Message
+				m.Text = update.CallbackQuery.Data
+				chart(m)
 			case "yes":
 				resetWalletsYes(update.CallbackQuery.Message)
 			case "no":
@@ -210,9 +213,16 @@ func initKeyboard() {
 			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
 		),
 	)
-	chartKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	chart24hKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
+			tgbotapi.NewInlineKeyboardButtonData("Chart 30d", "chart 30d"),
+			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+		),
+	)
+	chart30dKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Chart 24h", "chart 24h"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
 		),

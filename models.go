@@ -7,8 +7,8 @@ import (
 )
 
 type Configuration struct {
-	BotToken, MetricToken                                                                           string
-	ChannelId, ChatId                                                                          int64
+	BotToken, MetricToken                                                              string
+	ChannelId, ChatId                                                                  int64
 	BuySellXRP                                                                         string
 	TwitterAccounts                                                                    []string
 	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
@@ -17,7 +17,7 @@ type Configuration struct {
 	BittrexChartURL                                                                    string
 	CoinMarketCapListings                                                              string
 	AdminIds                                                                           []int64
-	ChannelHours, ChatHours, UsersHours, TwitterHours int
+	ChannelHours, GroupHours, UsersHours, TwitterHours                                  int
 }
 
 type User struct {
@@ -118,6 +118,20 @@ type PendingPost struct {
 	Message  tgbotapi.Message
 	PostTime time.Time
 	//IsRepeating bool
-	DelayHours float64
+	DelayHours  float64
 	Destination int64
+}
+
+type TimeForSending struct {
+	GroupTime, ChannelTime, UsersTime, TwitterTime time.Time
+}
+
+func (t TimeForSending) anyTime() bool {
+	if time.Now().After(t.GroupTime) ||
+		time.Now().After(t.ChannelTime) ||
+		time.Now().After(t.UsersTime) ||
+		time.Now().After(t.TwitterTime) {
+		return true
+	}
+	return false
 }

@@ -61,14 +61,12 @@ func checkTwitter() {
 	}
 }
 
-var chatCounter, channelCounter, usersCounter, twitterCounter int
 
 func checkPrice() {
 	for {
-		if chatCounter+1 == config.ChatHours ||
-			channelCounter+1 == config.ChannelHours ||
-			usersCounter+1 == config.UsersHours ||
-			twitterCounter+1 == config.TwitterHours {
+		var t TimeForSending
+		readJson(&t, "time.json")
+		if t.anyTime() {
 			var old Prices
 			readJson(&old, "prices.json")
 
@@ -89,27 +87,32 @@ func checkPrice() {
 
 			text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
 				float64ToStringPrec3(coin.Quotes["USD"].Price))
-			if channelCounter+1 == config.ChannelHours {
+			if time.Now().After(t.ChannelTime) {
 				sendMessage(config.ChannelId, text, nil)
+				t.ChannelTime =
+					t.ChannelTime.Add(time.Duration(config.ChannelHours) * time.Hour)
 			}
-			if chatCounter+1 == config.ChatHours {
+			if time.Now().After(t.GroupTime)  {
 				sendMessage(config.ChatId, text, nil)
+				t.GroupTime =
+					t.GroupTime.Add(time.Duration(config.GroupHours) * time.Hour)
 			}
-			if usersCounter+1 == config.UsersHours {
+			if time.Now().After(t.UsersTime) {
 				go sendAllUsers(tgbotapi.MessageConfig{Text: text,
 					BaseChat: tgbotapi.BaseChat{ReplyMarkup: &priceKeyboard}})
+				t.UsersTime =
+					t.UsersTime.Add(time.Duration(config.UsersHours) * time.Hour)
 			}
-			if twitterCounter+1 == config.TwitterHours {
+			if time.Now().After(t.TwitterTime) {
 				text = strings.Replace(text, "*", "", -1)
 				text = strings.Replace(text, " ", " $", 1)
 				tweet(text)
+				t.TwitterTime =
+					t.TwitterTime.Add(time.Duration(config.TwitterHours) * time.Hour)
 			}
 			writeJson(&old, "prices.json")
+			writeJson(&t, "time.json")
 		}
-		chatCounter++
-		channelCounter++
-		usersCounter++
-		twitterCounter++
 		time.Sleep(1 * time.Hour)
 	}
 }

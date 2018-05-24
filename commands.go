@@ -76,7 +76,7 @@ func balance(message *tgbotapi.Message) {
 }
 
 func index(message *tgbotapi.Message) {
-	text := "*Top 10 Cryptocurrencies*\n_(by Market Cap)_"
+	text := "*Top 10 Cryptocurrencies*\n_(by Market Cap)_\n"
 	coins, err := cmc.Tickers(&cmc.TickersOptions{
 		Start:   0,
 		Limit:   10,

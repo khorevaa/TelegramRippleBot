@@ -139,7 +139,7 @@ func main() {
 				stats(update.CallbackQuery.Message)
 			case "help":
 				start(update.CallbackQuery.Message)
-			case "chart 30d", "chart 24h":
+			case "chart 30d", "chart 24h", "chart":
 				m := update.CallbackQuery.Message
 				m.Text = update.CallbackQuery.Data
 				chart(m)

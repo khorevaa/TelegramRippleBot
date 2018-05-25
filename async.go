@@ -87,19 +87,33 @@ func checkPrice() {
 
 			text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
 				float64ToStringPrec3(coin.Quotes["USD"].Price))
+			keyboard := checkPriceKeyboard
+			textForUrl := strings.Replace(
+				strings.Replace(text, "*", "", -1), " ", " $", 1) +
+				" (via @XRPwatch)" + phrases[20]
+			myurl, err := url.Parse(fmt.Sprintf(config.TwitterShareURL, textForUrl))
+			if err != nil{
+				log.Print(err)
+			}
+			parameters := url.Values{}
+			parameters.Add("text", textForUrl)
+			myurl.RawQuery = parameters.Encode()
+			urlstr := myurl.String()
+			keyboard.InlineKeyboard[0][1].URL = &urlstr
+
 			if time.Now().After(t.ChannelTime) {
-				sendMessage(config.ChannelId, text, nil)
+				sendMessage(config.ChannelId, text, keyboard)
 				t.ChannelTime =
 					t.ChannelTime.Add(time.Duration(config.ChannelHours) * time.Hour)
 			}
 			if time.Now().After(t.GroupTime)  {
-				sendMessage(config.ChatId, text, nil)
+				sendMessage(config.ChatId, text, keyboard)
 				t.GroupTime =
 					t.GroupTime.Add(time.Duration(config.GroupHours) * time.Hour)
 			}
 			if time.Now().After(t.UsersTime) {
 				go sendAllUsers(tgbotapi.MessageConfig{Text: text,
-					BaseChat: tgbotapi.BaseChat{ReplyMarkup: &priceKeyboard}})
+					BaseChat: tgbotapi.BaseChat{ReplyMarkup: &keyboard}})
 				t.UsersTime =
 					t.UsersTime.Add(time.Duration(config.UsersHours) * time.Hour)
 			}

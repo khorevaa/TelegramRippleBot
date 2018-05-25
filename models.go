@@ -18,6 +18,7 @@ type Configuration struct {
 	CoinMarketCapListings                                                              string
 	AdminIds                                                                           []int64
 	ChannelHours, GroupHours, UsersHours, TwitterHours                                  int
+	TwitterShareURL string
 }
 
 type User struct {

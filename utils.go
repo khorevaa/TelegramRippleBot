@@ -7,6 +7,7 @@ import (
 	"os"
 	"io/ioutil"
 	"bytes"
+	"github.com/m90/go-chatbase"
 )
 
 func int64ToString(i int64) string {
@@ -89,4 +90,16 @@ func writeJson(obj interface{}, filename string) {
 		log.Print(err)
 	}
 	ioutil.WriteFile(filename, dataJson, 0644)
+}
+
+func sendMetric(userId int, intent, message string) {
+	botMessage := metric.Message(chatbase.UserType,
+		strconv.Itoa(userId), chatbase.PlatformTelegram).
+		SetIntent(intent).
+		SetMessage(message)
+	response, err := botMessage.Submit()
+	if err != nil || !response.Status.OK() {
+		log.Print(err)
+		log.Print(response)
+	}
 }

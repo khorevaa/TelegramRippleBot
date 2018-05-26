@@ -12,14 +12,14 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"net/url"
 	"net/http"
-	"github.com/botanio/sdk/go"
+	"github.com/m90/go-chatbase"
 )
 
 var (
 	bot          *tgbotapi.BotAPI
 	config       Configuration
 	db           *gorm.DB
-	botanMetric  botan.Botan
+	metric       *chatbase.Client
 	phrases      map[int]string
 	cache24h     CachedStats
 	cache30d     CachedStats
@@ -59,7 +59,7 @@ var (
 func main() {
 	initLog()
 	initConfig()
-	initBotan()
+	initChatbase()
 	initStrings()
 	initKeyboard()
 	initDB()
@@ -93,11 +93,8 @@ func main() {
 		if update.Message != nil {
 			log.Printf("[%s] %s ", update.Message.From.FirstName, update.Message.Text)
 			if update.Message.IsCommand() {
-				botanMetric.TrackAsync(update.Message.From.ID,
-					*update.Message,
-					update.Message.Text,
-					postMetric)
 				command := update.Message.Command()
+				sendMetric(update.Message.From.ID, command, update.Message.Text)
 				switch command {
 				case "start":
 					start(update.Message)
@@ -135,6 +132,7 @@ func main() {
 				}
 			}
 		} else if update.CallbackQuery != nil {
+			sendMetric(update.CallbackQuery.Message.From.ID, update.CallbackQuery.Data, update.CallbackQuery.Data)
 			switch update.CallbackQuery.Data {
 			case "stats":
 				stats(update.CallbackQuery.Message)
@@ -170,9 +168,8 @@ func initConfig() {
 	readJson(&config, "config.json")
 }
 
-func initBotan() {
-	botanMetric = botan.New(config.MetricToken)
-	log.Print("Inited Botan")
+func initChatbase() {
+	metric = chatbase.New(config.MetricToken)
 }
 
 func initStrings() {
@@ -299,8 +296,4 @@ func initListings() {
 
 	str := json.Get(bodyBytes, "data").ToString()
 	json.UnmarshalFromString(str, &listings)
-}
-
-func postMetric(ans botan.Answer, err []error) {
-	log.Printf("AppMetric: %+v. Error: %v\n", ans, err)
 }

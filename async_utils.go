@@ -103,3 +103,22 @@ func tweet(text string) {
 		log.Print(err)
 	}
 }
+
+//func getUrlToTweet(text string) string {
+//	textForUrl := strings.Replace(
+//		strings.Replace(text, "*", "", -1), " ", " $", 1) +
+//		" (via @XRPwatch)" + phrases[20]
+//	myUrl := config.TwitterShareURL + "?text=" + textForUrl
+//	return myUrl
+//}
+//func generateLink(link chatbase.Link) string{
+//	base := "https://chatbase.com/r"
+//	params := url.Values{
+//		"api_key":  link.APIKey,
+//		"url":      link.URL,
+//		"platform": link.Platform,
+//	}
+//
+//	url := base + params
+//	return url
+//}

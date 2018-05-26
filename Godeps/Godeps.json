@@ -22,10 +22,6 @@
 			"Rev": "53511d3c733003985b0b76f733df1f4d0095ee6a"
 		},
 		{
-			"ImportPath": "github.com/botanio/sdk/go",
-			"Rev": "8ba83ba5c10ac34c4d8ef96b9693e41024e2d05b"
-		},
-		{
 			"ImportPath": "github.com/coincircle/go-coinmarketcap",
 			"Rev": "8576053ecf9cc53320ac1025732144db6a9ddd3b"
 		},
@@ -80,6 +76,10 @@
 			"Rev": "2ddf6d758266fcb080a4f9e054b9f292c85e6798"
 		},
 		{
+          "ImportPath": "github.com/m90/go-chatbase",
+          "Rev": "d8c7d06cff1d00cce40b7d4d7ef1fd72fd250698"
+        },
+      {
 			"ImportPath": "github.com/mattn/go-sqlite3",
 			"Comment": "v1.2.0-119-g05548ff",
 			"Rev": "05548ff55570cdb9ac72ff4a25a3b5e77a6fb7e5"
@@ -93,11 +93,6 @@
 			"ImportPath": "github.com/modern-go/reflect2",
 			"Comment": "1.0.0-9-g05fbef0",
 			"Rev": "05fbef0ca5da472bbf96c9322b84a53edc03c9fd"
-		},
-		{
-			"ImportPath": "github.com/rockneurotiko/gorequest",
-			"Comment": "v0.2.4-72-gb232713",
-			"Rev": "b232713e2cb2bbff22aaee93bfc94d0d1ceba115"
 		},
 		{
 			"ImportPath": "github.com/technoweenie/multipartstreamer",
@@ -134,10 +129,6 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
-			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
-		},
-		{
-			"ImportPath": "golang.org/x/net/publicsuffix",
 			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
 		},
 		{

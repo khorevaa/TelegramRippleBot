@@ -61,7 +61,6 @@ func checkTwitter() {
 	}
 }
 
-
 func checkPrice() {
 	for {
 		var t TimeForSending
@@ -91,8 +90,8 @@ func checkPrice() {
 			textForUrl := strings.Replace(
 				strings.Replace(text, "*", "", -1), " ", " $", 1) +
 				" (via @XRPwatch)" + phrases[20]
-			myurl, err := url.Parse(fmt.Sprintf(config.TwitterShareURL, textForUrl))
-			if err != nil{
+			myurl, err := url.Parse(config.TwitterShareURL)
+			if err != nil {
 				log.Print(err)
 			}
 			parameters := url.Values{}
@@ -106,7 +105,7 @@ func checkPrice() {
 				t.ChannelTime =
 					t.ChannelTime.Add(time.Duration(config.ChannelHours) * time.Hour)
 			}
-			if time.Now().After(t.GroupTime)  {
+			if time.Now().After(t.GroupTime) {
 				sendMessage(config.ChatId, text, keyboard)
 				t.GroupTime =
 					t.GroupTime.Add(time.Duration(config.GroupHours) * time.Hour)

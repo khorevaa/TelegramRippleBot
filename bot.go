@@ -29,6 +29,9 @@ var (
 	currState    string
 	currPost     PendingPost
 
+	start1Keyboard     tgbotapi.InlineKeyboardMarkup
+	start2Keyboard     tgbotapi.InlineKeyboardMarkup
+	start3Keyboard     tgbotapi.InlineKeyboardMarkup
 	txKeyboard         tgbotapi.InlineKeyboardMarkup
 	priceKeyboard      tgbotapi.InlineKeyboardMarkup
 	checkPriceKeyboard tgbotapi.InlineKeyboardMarkup
@@ -133,19 +136,29 @@ func main() {
 			}
 		} else if update.CallbackQuery != nil {
 			sendMetric(update.CallbackQuery.Message.From.ID, update.CallbackQuery.Data, update.CallbackQuery.Data)
+			m := update.CallbackQuery.Message
+			m.Text = update.CallbackQuery.Data
 			switch update.CallbackQuery.Data {
 			case "stats":
-				stats(update.CallbackQuery.Message)
+				stats(m)
+			case "start":
+				start(m)
 			case "help":
-				start(update.CallbackQuery.Message)
+				help(m)
+			case "index":
+				index(m)
+			case "balance":
+				balance(m)
+			case "addwallet":
+				addWallet(m)
+			case "currency":
+				currency(m)
 			case "chart 30d", "chart 24h", "chart":
-				m := update.CallbackQuery.Message
-				m.Text = update.CallbackQuery.Data
 				chart(m)
 			case "yes":
-				resetWalletsYes(update.CallbackQuery.Message)
+				resetWalletsYes(m)
 			case "no":
-				resetWalletsNo(update.CallbackQuery.Message)
+				resetWalletsNo(m)
 			}
 			bot.AnswerCallbackQuery(tgbotapi.CallbackConfig{update.CallbackQuery.ID, "", false, "", 0})
 		}
@@ -177,6 +190,26 @@ func initStrings() {
 }
 
 func initKeyboard() {
+	start1Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
+			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
+			tgbotapi.NewInlineKeyboardButtonData("Index", "index"),
+		),
+	)
+	start2Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Balance", "balance"),
+			tgbotapi.NewInlineKeyboardButtonData("Add wallet", "addwallet"),
+		),
+	)
+	start3Keyboard = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Currency", "currency"),
+			tgbotapi.NewInlineKeyboardButtonURL("Support", config.SupportURL),
+			tgbotapi.NewInlineKeyboardButtonData("CMDs", "help"),
+		),
+	)
 	txKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonURL("Transaction details", ""),
@@ -187,49 +220,49 @@ func initKeyboard() {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	checkPriceKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
 			tgbotapi.NewInlineKeyboardButtonURL("Tweet!", ""),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	balanceKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	statsKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	indexKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
 			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	chart24hKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Chart 30d", "chart 30d"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	chart30dKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Chart 24h", "chart 24h"),
 			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
-			tgbotapi.NewInlineKeyboardButtonData("Help", "help"),
+			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	yesNoKeyboard = tgbotapi.NewInlineKeyboardMarkup(

@@ -12,6 +12,12 @@ import (
 
 func start(message *tgbotapi.Message) {
 	addUserIfAbsent(message.From)
+	sendMessage(message.Chat.ID, phrases[25], start1Keyboard)
+	sendMessage(message.Chat.ID, phrases[26], start2Keyboard)
+	sendMessage(message.Chat.ID, phrases[27], start3Keyboard)
+}
+
+func help(message *tgbotapi.Message) {
 	sendMessage(message.Chat.ID, phrases[0], nil)
 }
 

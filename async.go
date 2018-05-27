@@ -101,18 +101,21 @@ func checkPrice() {
 			keyboard.InlineKeyboard[0][1].URL = &urlstr
 
 			if time.Now().After(t.ChannelTime) {
-				sendMessage(config.ChannelId, text, keyboard)
+				sendMessage(config.ChannelId, text, nil)
 				t.ChannelTime =
 					t.ChannelTime.Add(time.Duration(config.ChannelHours) * time.Hour)
 			}
 			if time.Now().After(t.GroupTime) {
-				sendMessage(config.ChatId, text, keyboard)
+				sendMessage(config.ChatId, text, nil)
 				t.GroupTime =
 					t.GroupTime.Add(time.Duration(config.GroupHours) * time.Hour)
 			}
 			if time.Now().After(t.UsersTime) {
-				go sendAllUsers(tgbotapi.MessageConfig{Text: text,
-					BaseChat: tgbotapi.BaseChat{ReplyMarkup: &keyboard}})
+				go sendAllUsers(tgbotapi.MessageConfig{
+					Text: text,
+					BaseChat: tgbotapi.BaseChat{
+						ReplyMarkup: &keyboard},
+				})
 				t.UsersTime =
 					t.UsersTime.Add(time.Duration(config.UsersHours) * time.Hour)
 			}

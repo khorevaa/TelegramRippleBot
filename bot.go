@@ -84,7 +84,7 @@ func main() {
 	go checkTwitter()
 	go checkPrice()
 	go checkPeriodsPrice()
-	go weeklyRoundUp()
+	//go weeklyRoundUp()
 	go checkPosts()
 
 	u := tgbotapi.NewUpdate(0)
@@ -100,7 +100,7 @@ func main() {
 				sendMetric(update.Message.From.ID, command, update.Message.Text)
 				switch command {
 				case "start":
-					start(update.Message)
+					go start(update.Message)
 				case "addwallet":
 					addWallet(update.Message)
 				case "resetwallets":
@@ -138,11 +138,12 @@ func main() {
 			sendMetric(update.CallbackQuery.Message.From.ID, update.CallbackQuery.Data, update.CallbackQuery.Data)
 			m := update.CallbackQuery.Message
 			m.Text = update.CallbackQuery.Data
+			m.From = update.CallbackQuery.From
 			switch update.CallbackQuery.Data {
 			case "stats":
 				stats(m)
 			case "start":
-				start(m)
+				go start(m)
 			case "help":
 				help(m)
 			case "index":
@@ -175,6 +176,7 @@ func initLog() {
 	}
 	mw := io.MultiWriter(os.Stdout, f)
 	log.SetOutput(mw)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
 func initConfig() {

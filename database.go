@@ -7,7 +7,6 @@ import (
 )
 
 func addUserIfAbsent(user *tgbotapi.User) {
-	log.Print("Started adding user")
 	var u User
 	db.Find(&u, "id = ?", user.ID)
 	if u.ID == (User{}.ID) {
@@ -22,12 +21,10 @@ func addUserIfAbsent(user *tgbotapi.User) {
 }
 
 func addWalletDB(message *tgbotapi.Message) {
-	log.Print("Started adding wallet")
 	var addr, name string
 	fields := strings.Fields(message.Text)
 	addr = fields[1]
 	name = fields[2]
-
 
 	u := getUser(message.From.ID)
 	var wallet Wallet
@@ -45,7 +42,6 @@ func addWalletDB(message *tgbotapi.Message) {
 }
 
 func resetWalletsDB(message *tgbotapi.Message) {
-	log.Print("Started removing wallet")
 	u := getUser(message.From.ID)
 	var wallets []Wallet
 	db.Model(&u).Association("Wallets").Find(&wallets)
@@ -58,7 +54,6 @@ func resetWalletsDB(message *tgbotapi.Message) {
 }
 
 func getUser(id int) User {
-	log.Print("Started get user")
 	var u User
 	db.Find(&u, "id = ?", id)
 	return u

@@ -12,8 +12,16 @@ import (
 
 func start(message *tgbotapi.Message) {
 	addUserIfAbsent(message.From)
+	var username string
+	if message.From.UserName != ""{
+		username = "@" + message.From.UserName
+	}
+	sendMessage(message.Chat.ID, fmt.Sprintf(phrases[28], username), nil)
+	time.Sleep(time.Duration(500) * time.Millisecond)
 	sendMessage(message.Chat.ID, phrases[25], start1Keyboard)
+	time.Sleep(time.Duration(500) * time.Millisecond)
 	sendMessage(message.Chat.ID, phrases[26], start2Keyboard)
+	time.Sleep(time.Duration(500) * time.Millisecond)
 	sendMessage(message.Chat.ID, phrases[27], start3Keyboard)
 }
 
@@ -267,7 +275,8 @@ func currency(message *tgbotapi.Message) {
 	user := getUser(message.From.ID)
 	user.Currency = strings.ToUpper(fields[1])
 	db.Save(&user)
-	sendMessage(message.Chat.ID, phrases[6], nil)
+	text := fmt.Sprintf(phrases[6], user.Currency)
+	sendMessage(message.Chat.ID, text, nil)
 }
 
 func newPost(message *tgbotapi.Message) {

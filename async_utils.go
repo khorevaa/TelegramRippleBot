@@ -101,6 +101,7 @@ func tweet(text string) {
 	_, err := twitter.PostTweet(text+phrases[20], url.Values{})
 	if err != nil {
 		log.Print(err)
+		log.Print(text)
 	}
 }
 

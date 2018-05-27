@@ -96,6 +96,10 @@ func main() {
 		if update.Message != nil {
 			log.Printf("[%s] %s ", update.Message.From.FirstName, update.Message.Text)
 			if update.Message.IsCommand() {
+				if int64(update.Message.From.ID) != update.Message.Chat.ID{
+					//disable commands for groups
+					continue
+				}
 				command := update.Message.Command()
 				sendMetric(update.Message.From.ID, command, update.Message.Text)
 				switch command {

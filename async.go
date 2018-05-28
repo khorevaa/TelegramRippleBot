@@ -393,3 +393,25 @@ func parsePost(p *PendingPost, id int64) tgbotapi.Chattable {
 	p.PostTime = time.Now().Add(time.Duration(p.DelayHours) * time.Hour)
 	return msg
 }
+
+func updateRates(){
+	for{
+		time.Sleep(24*time.Hour)
+		log.Print("Updating rates")
+		rates = make(map[string]float32)
+		var symbols []string
+		for _, s := range currencies {
+			symbols = append(symbols, s)
+		}
+		fixer.Symbols(symbols...)
+
+		resp, err := fixer.GetRates()
+		if err != nil {
+			log.Print(err)
+		}
+		for k, v := range resp{
+			rates[k] = v
+		}
+		log.Print(rates)
+	}
+}

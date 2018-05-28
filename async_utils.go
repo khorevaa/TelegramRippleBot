@@ -72,12 +72,12 @@ func sendNotifications(txs []Transaction, wallet Wallet) {
 			text += name + " wallet\n\n" + "New balance:\n*" + decBalanceStr + " XRP* ≈ "
 			price, err := cmc.Price(&cmc.PriceOptions{
 				Symbol:  "XRP",
-				Convert: "USD",
+				Convert: user.Currency,
 			})
 			if err != nil {
 				log.Print(err)
 			}
-			text += float64ToString(price*decBalance) + " USD\n"
+			text += float64ToString(price*decBalance) + " "+user.Currency+"\n"
 			*txKeyboard.InlineKeyboard[0][0].URL =
 				"https://xrpcharts.ripple.com/#/transactions/" + tx.Hash
 			sendMessage(user.ID, text, txKeyboard)

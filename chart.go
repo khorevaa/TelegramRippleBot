@@ -34,9 +34,8 @@ var (
 	font                   = "HelveticaNeueBold.ttf"
 )
 
-func loadChart(period string) {
-	pair := "usdt-xrp"
-	candles = getCandlesBittrex(pair, period)
+func loadChart(period, currency string) {
+	candles = getCandlesBittrex("usdt-xrp", period, currency)
 	dc = gg.NewContext(int(width), int(height))
 	drawBackground()
 	//drawLogo()
@@ -47,9 +46,9 @@ func loadChart(period string) {
 		drawCandle(float64(i), val, period)
 	}
 	drawCurrentValue()
-	drawName(pair)
+	drawName(currency + "-xrp")
 	drawDate()
-	dc.SavePNG("chart-" + period + ".png")
+	dc.SavePNG("chart-" + period + currency + ".png")
 }
 
 func drawBackground() {
@@ -268,7 +267,7 @@ func drawDate() {
 
 }
 
-func getCandlesBittrex(pair, period string) []Candle {
+func getCandlesBittrex(pair, period, currency string) []Candle {
 	var response Response
 	var resp *http.Response
 	var err error
@@ -284,9 +283,17 @@ func getCandlesBittrex(pair, period string) []Candle {
 			break
 		}
 	}
-	if len(response.Result) <= 50 {
-		return response.Result
-	} else {
-		return response.Result[len(response.Result)-50:]
+	if len(response.Result) > 50 {
+		response.Result = response.Result[len(response.Result)-50:]
 	}
+	if currency != "USD" {
+		for i, val := range response.Result {
+			val.Highest *= float64(rates[currency])
+			val.Lowest *= float64(rates[currency])
+			val.Close *= float64(rates[currency])
+			val.Open *= float64(rates[currency])
+			response.Result[i] = val
+		}
+	}
+	return response.Result
 }

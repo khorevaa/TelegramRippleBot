@@ -8,17 +8,19 @@ import (
 	"strings"
 	"telegram-bot-api"
 	"time"
+	"github.com/coincircle/go-coinmarketcap/types"
 )
 
-func getRippleStats() string {
+func getRippleStats(currency string) types.Ticker {
 	coin, err := cmc.Ticker(&cmc.TickerOptions{
 		Symbol:  "XRP",
-		Convert: "USD",
+		Convert: currency,
 	})
 	if err != nil {
 		log.Print(err)
 	}
-	return "*Price:* " + float64ToStringPrec3(coin.Quotes["USD"].Price) + " USD"
+
+	return *coin
 }
 
 func checkAddress(a string) bool {

@@ -13,7 +13,7 @@ import (
 func start(message *tgbotapi.Message) {
 	addUserIfAbsent(message.From)
 	var username string
-	if message.From.UserName != ""{
+	if message.From.UserName != "" {
 		username = "@" + message.From.UserName
 	}
 	sendMessage(message.Chat.ID, fmt.Sprintf(phrases[28], username), nil)
@@ -80,21 +80,22 @@ func balance(message *tgbotapi.Message) {
 	}
 	price, err := cmc.Price(&cmc.PriceOptions{
 		Symbol:  "XRP",
-		Convert: "USD",
+		Convert: user.Currency,
 	})
 	if err != nil {
 		log.Print(err)
 	}
-	text += fmt.Sprintf(phrases[16], float64ToString(price*sum))
+	text += fmt.Sprintf(phrases[16], float64ToString(price*sum), user.Currency)
 	sendMessage(message.Chat.ID, text, balanceKeyboard)
 }
 
 func index(message *tgbotapi.Message) {
+	user := getUser(message.From.ID)
 	text := "*Top 10 Cryptocurrencies*\n_(by Market Cap)_\n"
 	coins, err := cmc.Tickers(&cmc.TickersOptions{
 		Start:   0,
 		Limit:   10,
-		Convert: "USD",
+		Convert: user.Currency,
 	})
 	if err != nil {
 		log.Print(err)
@@ -110,8 +111,8 @@ func index(message *tgbotapi.Message) {
 		number++
 		numberStr := numberEmojis[number]
 		currText = numberStr + " " + newMap[number].Symbol + " " +
-			float64ToString(newMap[number].Quotes["USD"].Price) + " USD _(" +
-			float64WithSign(newMap[number].Quotes["USD"].PercentChange24H) + "%)_\n"
+			float64ToString(newMap[number].Quotes[user.Currency].Price) + " " + user.Currency + " _(" +
+			float64WithSign(newMap[number].Quotes[user.Currency].PercentChange24H) + "%)_\n"
 
 		if newMap[number].Name == "Ripple" {
 			currText = "*" + currText + "*"
@@ -123,55 +124,37 @@ func index(message *tgbotapi.Message) {
 }
 
 func price(message *tgbotapi.Message) {
-	fields := strings.Fields(message.Text)
-	if len(fields) == 2 {
-		priceCoin(message)
-	} else {
-		priceXrp(message)
-	}
-
-}
-
-func priceCoin(message *tgbotapi.Message) {
+	user := getUser(message.From.ID)
 	var text string
 	fields := strings.Fields(message.Text)
-	ticker := getCurrency(fields[1])
+	ticker := "XRP"
+	if len(fields) == 2 {
+		ticker = getCurrency(fields[1])
+	}
 	if ticker != "" {
 		coin, err := cmc.Ticker(&cmc.TickerOptions{
 			Symbol:  ticker,
-			Convert: "USD",
+			Convert: user.Currency,
 		})
 		if err != nil {
 			log.Print(err)
 		}
 
 		text = fmt.Sprintf(phrases[17], coin.Symbol,
-			float64ToStringPrec3(coin.Quotes["USD"].Price),
-			float64WithSign(coin.Quotes["USD"].PercentChange24H),
-			float64WithSign(coin.Quotes["USD"].PercentChange7D))
+			float64ToStringPrec3(coin.Quotes[user.Currency].Price),
+			user.Currency,
+			float64WithSign(coin.Quotes[user.Currency].PercentChange24H),
+			float64WithSign(coin.Quotes[user.Currency].PercentChange7D))
 
 	} else {
 		text = phrases[5]
 	}
 
-	sendMessage(message.Chat.ID, text, nil)
-}
-
-func priceXrp(message *tgbotapi.Message) {
-	coin, err := cmc.Ticker(&cmc.TickerOptions{
-		Symbol:  "XRP",
-		Convert: "USD",
-	})
-	if err != nil {
-		log.Print(err)
+	if ticker == "XRP" {
+		sendMessage(message.Chat.ID, text, priceKeyboard)
+	} else {
+		sendMessage(message.Chat.ID, text, nil)
 	}
-
-	text := fmt.Sprintf(phrases[17], "XRP",
-		float64ToStringPrec3(coin.Quotes["USD"].Price),
-		float64WithSign(coin.Quotes["USD"].PercentChange24H),
-		float64WithSign(coin.Quotes["USD"].PercentChange7D))
-
-	sendMessage(message.Chat.ID, text, priceKeyboard)
 }
 
 func chart(message *tgbotapi.Message) {
@@ -193,20 +176,23 @@ func chart(message *tgbotapi.Message) {
 func chart24h(message *tgbotapi.Message) {
 	var photo tgbotapi.PhotoConfig
 	setUploadingPhoto(message.Chat.ID)
-	if time.Now().Sub(cache24h.Time).Minutes() > 3 || cache24h.PhotoId == "" {
-		loadChart("thirtyMin")
+	user := getUser(message.From.ID)
+	coin := getRippleStats(user.Currency)
+	if time.Now().Sub(cache24h.Time).Minutes() > 3 || cache24h.PhotoIds[user.Currency] == "" {
+		loadChart("thirtyMin", user.Currency)
 		cache24h.Time = time.Now()
-		cache24h.Stats = getRippleStats()
-		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-thirtyMin.png")
-		photo.Caption = "*XRP* (24h) | " + cache24h.Stats
+		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-thirtyMin" + user.Currency + ".png")
+		photo.Caption = "*XRP* (24h) | " + "*Price:* " +
+			float64ToStringPrec3(coin.Quotes[user.Currency].Price) + " " + user.Currency
 		photo.ParseMode = tgbotapi.ModeMarkdown
 		photo.BaseChat.ReplyMarkup = &chart24hKeyboard
 		if id := sendPhoto(photo); id != "" {
-			cache24h.PhotoId = id
+			cache24h.PhotoIds[user.Currency] = id
 		}
 	} else {
-		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache24h.PhotoId)
-		photo.Caption = "*XRP* (24h) | " + cache24h.Stats
+		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache24h.PhotoIds[user.Currency])
+		photo.Caption = "*XRP* (24h) | " + "*Price:* " +
+			float64ToStringPrec3(coin.Quotes[user.Currency].Price) + " " + user.Currency
 		photo.ParseMode = tgbotapi.ModeMarkdown
 		photo.BaseChat.ReplyMarkup = &chart24hKeyboard
 		sendPhoto(photo)
@@ -216,20 +202,23 @@ func chart24h(message *tgbotapi.Message) {
 func chart30d(message *tgbotapi.Message) {
 	var photo tgbotapi.PhotoConfig
 	setUploadingPhoto(message.Chat.ID)
-	if time.Now().Sub(cache30d.Time).Minutes() > 3 || cache30d.PhotoId == "" {
-		loadChart("day")
+	user := getUser(message.From.ID)
+	coin := getRippleStats(user.Currency)
+	if time.Now().Sub(cache30d.Time).Minutes() > 3 || cache30d.PhotoIds[user.Currency] == "" {
+		loadChart("day", user.Currency)
 		cache30d.Time = time.Now()
-		cache30d.Stats = getRippleStats()
-		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-day.png")
-		photo.Caption = "*XRP* (30d) | " + cache30d.Stats
+		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-day" + user.Currency + ".png")
+		photo.Caption = "*XRP* (30d) | " + "*Price:* " +
+			float64ToStringPrec3(coin.Quotes[user.Currency].Price) + " " + user.Currency
 		photo.ParseMode = tgbotapi.ModeMarkdown
 		photo.BaseChat.ReplyMarkup = &chart30dKeyboard
 		if id := sendPhoto(photo); id != "" {
-			cache30d.PhotoId = id
+			cache30d.PhotoIds[user.Currency] = id
 		}
 	} else {
-		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache30d.PhotoId)
-		photo.Caption = "*XRP* (30d) | " + cache30d.Stats
+		photo = tgbotapi.NewPhotoShare(message.Chat.ID, cache30d.PhotoIds[user.Currency])
+		photo.Caption = "*XRP* (30d) | " + "*Price:* " +
+			float64ToStringPrec3(coin.Quotes[user.Currency].Price) + " " + user.Currency
 		photo.ParseMode = tgbotapi.ModeMarkdown
 		photo.BaseChat.ReplyMarkup = &chart30dKeyboard
 		sendPhoto(photo)
@@ -237,26 +226,30 @@ func chart30d(message *tgbotapi.Message) {
 }
 
 func stats(message *tgbotapi.Message) {
+	user := getUser(message.From.ID)
 	coin, err := cmc.Ticker(&cmc.TickerOptions{
 		Symbol:  "XRP",
-		Convert: "USD",
+		Convert: user.Currency,
 	})
 	if err != nil {
 		log.Print(err)
 	}
 	market, err := cmc.GlobalMarket(&cmc.GlobalMarketOptions{
-		Convert: "USD",
+		Convert: user.Currency,
 	})
 	if err != nil {
 		log.Print(err)
 	}
 
-	share := coin.Quotes["USD"].MarketCap * 100 / market.Quotes["USD"].TotalMarketCap
+	share := coin.Quotes[user.Currency].MarketCap * 100 / market.Quotes[user.Currency].TotalMarketCap
 
-	text := fmt.Sprintf(phrases[18],float64ToString(coin.Quotes["USD"].Price),
-		float64WithSign(coin.Quotes["USD"].PercentChange24H),
-		float64ToString(coin.Quotes["USD"].Volume24H/1000000),
-		float64ToString(coin.Quotes["USD"].MarketCap/1000000000),
+	text := fmt.Sprintf(phrases[18], float64ToString(coin.Quotes[user.Currency].Price),
+		user.Currency,
+		float64WithSign(coin.Quotes[user.Currency].PercentChange24H),
+		float64ToString(coin.Quotes[user.Currency].Volume24H/1000000),
+		user.Currency,
+		float64ToString(coin.Quotes[user.Currency].MarketCap/1000000000),
+		user.Currency,
 		float64ToString(share),
 		float64ToString(market.BitcoinPercentageOfMarketCap))
 	sendMessage(message.Chat.ID, text, statsKeyboard)

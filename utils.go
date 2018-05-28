@@ -32,7 +32,8 @@ func stringToFloat64(s string) float64 {
 }
 
 func float64ToString(f float64) string {
-	s := strconv.FormatFloat(f, 'f', 2, 64)
+	f2 := float64(int(f*100))/100
+	s := strconv.FormatFloat(f2, 'f', -1, 64)
 	return s
 }
 

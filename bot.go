@@ -5,30 +5,31 @@ import (
 	"log"
 	"os"
 	"io"
-	"io/ioutil"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"time"
 	"github.com/ChimeraCoder/anaconda"
 	"net/url"
-	"net/http"
 	"github.com/m90/go-chatbase"
+	"github.com/fadion/gofixerio"
+	cmc "github.com/coincircle/go-coinmarketcap"
+	"github.com/coincircle/go-coinmarketcap/types"
 )
 
 var (
-	bot          *tgbotapi.BotAPI
-	config       Configuration
-	db           *gorm.DB
-	metric       *chatbase.Client
-	phrases      map[int]string
-	cache24h     CachedStats
-	cache30d     CachedStats
-	sinceTwitter = make(map[string]int64)
-	twitter      *anaconda.TwitterApi
-	listings     []Listing
-	currState    string
-	currPost     PendingPost
-
+	bot                *tgbotapi.BotAPI
+	config             Configuration
+	db                 *gorm.DB
+	metric             *chatbase.Client
+	phrases            map[int]string
+	cache24h           = CachedStats{PhotoIds: make(map[string]string)}
+	cache30d           = CachedStats{PhotoIds: make(map[string]string)}
+	sinceTwitter       = make(map[string]int64)
+	twitter            *anaconda.TwitterApi
+	listings           []*types.Listing
+	currState          string
+	currPost           PendingPost
+	fixer              *fixerio.Request
 	start1Keyboard     tgbotapi.InlineKeyboardMarkup
 	start2Keyboard     tgbotapi.InlineKeyboardMarkup
 	start3Keyboard     tgbotapi.InlineKeyboardMarkup
@@ -53,10 +54,11 @@ var (
 		9:  "9️⃣",
 		10: "🔟",
 	}
-	currencies = []string{"AUD", "BRL", "CAD", "CHF", "CLP", "CNY",
+	currencies = []string{"AUD", "BRL", "CAD", "CHF", "CNY",
 		"CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR",
-		"JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PKR", "PLN", "RUB",
-		"SEK", "SGD", "THB", "TRY", "TWD", "ZAR", "USD"}
+		"JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RUB",
+		"SEK", "SGD", "THB", "TRY", "ZAR", "USD"}
+	rates = make(map[string]float32)
 )
 
 func main() {
@@ -69,6 +71,7 @@ func main() {
 	initTwitter()
 	initCache()
 	initListings()
+	initRates()
 
 	var err error
 	bot, err = tgbotapi.NewBotAPI(config.BotToken)
@@ -86,6 +89,7 @@ func main() {
 	go checkPeriodsPrice()
 	//go weeklyRoundUp()
 	go checkPosts()
+	go updateRates()
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -96,7 +100,7 @@ func main() {
 		if update.Message != nil {
 			log.Printf("[%s] %s ", update.Message.From.FirstName, update.Message.Text)
 			if update.Message.IsCommand() {
-				if int64(update.Message.From.ID) != update.Message.Chat.ID{
+				if int64(update.Message.From.ID) != update.Message.Chat.ID {
 					//disable commands for groups
 					continue
 				}
@@ -219,13 +223,13 @@ func initKeyboard() {
 	txKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonURL("Transaction details", ""),
-			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy XRP", config.BuySellXRP),
 		),
 	)
 	priceKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
-			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
@@ -239,7 +243,7 @@ func initKeyboard() {
 	balanceKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("XRP stats", "stats"),
-			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
@@ -260,14 +264,14 @@ func initKeyboard() {
 	chart24hKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Chart 30d", "chart 30d"),
-			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
 	chart30dKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Chart 24h", "chart 24h"),
-			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)
@@ -317,22 +321,33 @@ func initTwitter() {
 }
 
 func initCache() {
-	loadChart("thirtyMin")
-	loadChart("day")
-	cache24h = CachedStats{Time: time.Now(), Stats: getRippleStats()}
+	loadChart("thirtyMin", "USD")
+	loadChart("day", "USD")
+	cache24h.Time = time.Now()
 }
 
 func initListings() {
-	resp, err := http.Get(config.CoinMarketCapListings)
+	var err error
+	listings, err = cmc.Listings()
 	if err != nil {
 		log.Print(err)
 	}
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Print(err)
-	}
+}
 
-	str := json.Get(bodyBytes, "data").ToString()
-	json.UnmarshalFromString(str, &listings)
+func initRates() {
+	fixer = fixerio.New()
+	fixer.Base("USD")
+	var symbols []string
+	for _, s := range currencies {
+		symbols = append(symbols, s)
+	}
+	fixer.Symbols(symbols...)
+
+	resp, err := fixer.GetRates()
+	if err != nil {
+		log.Print(err)
+	}
+	for k, v := range resp {
+		rates[k] = v
+	}
 }

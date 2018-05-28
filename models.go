@@ -76,8 +76,7 @@ type FinalFields struct {
 
 type CachedStats struct {
 	Time    time.Time
-	Stats   string
-	PhotoId string
+	PhotoIds map[string]string
 }
 
 type Candle struct {

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"telegram-bot-api"
+	"strings"
 )
 
 func sendMessage(chatId int64, text string, keyboard interface{}) {
@@ -24,8 +25,14 @@ func sendMessage(chatId int64, text string, keyboard interface{}) {
 	_, err := bot.Send(msg)
 	if err != nil {
 		log.Print(err)
+		if strings.Contains(err.Error(), " can't parse entities"){
+			msg.ParseMode = ""
+			bot.Send(msg)
+		}
+	}else {
+		log.Printf("[Bot] SENT %s TO %v", msg.Text, msg.ChatID)
 	}
-	log.Printf("[Bot] SENT %s TO %v", msg.Text, msg.ChatID)
+
 }
 
 func sendPhoto(photo tgbotapi.PhotoConfig) string {

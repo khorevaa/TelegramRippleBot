@@ -350,4 +350,5 @@ func initRates() {
 	for k, v := range resp {
 		rates[k] = float64(v)
 	}
+	rates["USD"] = 1
 }

@@ -35,7 +35,13 @@ func getTransactions(address string, timestamp string) []Transaction {
 	log.Print(str)
 	json.UnmarshalFromString(str, &txs)
 
-	return txs
+	var txsSuccess []Transaction
+	for _, tx := range txs{
+		if tx.Meta.TransactionResult == "tesSUCCESS"{
+			txsSuccess = append(txsSuccess, tx)
+		}
+	}
+	return txsSuccess
 }
 
 func sendNotifications(txs []Transaction, wallet Wallet) {
@@ -136,8 +142,8 @@ func convertAndSendAllUsers(template string,price float64, keyboard interface{})
 	for rows.Next() {
 		var user User
 		db.ScanRows(rows, &user)
-		price *= rates[user.Currency]
-		text := fmt.Sprintf(template, float64ToStringPrec3(price))
+		currPrice := price * rates[user.Currency]
+		text := fmt.Sprintf(template, float64ToStringPrec3(currPrice))
 		text = strings.Replace(text, "USD", user.Currency, -1)
 		sendMessage(user.ID, text, keyboard)
 	}

@@ -60,6 +60,7 @@ type TxInfo struct {
 
 type MetaInfo struct {
 	AffectedNodes []Node
+	TransactionResult string
 }
 
 type Node struct {

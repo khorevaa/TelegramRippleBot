@@ -3,7 +3,6 @@ package main
 import (
 	"strconv"
 	"log"
-	"strings"
 	"os"
 	"io/ioutil"
 	"bytes"
@@ -53,7 +52,7 @@ func float64WithSign(f float64) string {
 
 func contains(words []string, word string) bool {
 	for _, val := range words {
-		if strings.Contains(word, val) {
+		if word == val {
 			return true
 		}
 	}

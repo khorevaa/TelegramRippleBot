@@ -250,7 +250,7 @@ func initKeyboard() {
 	statsKeyboard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Chart", "chart"),
-			tgbotapi.NewInlineKeyboardButtonURL("Trade XRP", config.BuySellXRP),
+			tgbotapi.NewInlineKeyboardButtonURL("Buy XRP", config.BuySellXRP),
 			tgbotapi.NewInlineKeyboardButtonData("Start", "start"),
 		),
 	)

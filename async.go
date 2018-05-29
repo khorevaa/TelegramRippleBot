@@ -35,23 +35,16 @@ func checkTwitter() {
 		v.Add("include_rts", "false")
 		for _, val := range config.TwitterAccounts {
 			v.Add("screen_name", val)
-			var since string
-			if sinceTwitter[val] == 0 {
-				sinceTwitter[val] = 1
-				since = "1"
-			} else {
-				since = int64ToString(sinceTwitter[val])
-			}
+			since := int64ToString(sinceTwitter[val])
 			v.Add("since_id", since)
 			searchResult, err := twitter.GetUserTimeline(v)
 			if err != nil {
 				log.Print(err)
 			}
 			for _, val := range searchResult {
-				sendMessage(config.ChannelId,
-					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText, nil)
-				sendMessage(config.ChatId,
-					val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText, nil)
+				text := val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText
+				sendMessage(config.ChannelId, text, nil)
+				sendMessage(config.ChatId, text, nil)
 			}
 			if len(searchResult) > 0 {
 				sinceTwitter[val] = searchResult[0].Id
@@ -68,7 +61,6 @@ func checkPrice() {
 		if t.anyTime() {
 			var old Prices
 			readJson(&old, "prices.json")
-
 			coin, err := cmc.Ticker(&cmc.TickerOptions{
 				Symbol:  "XRP",
 				Convert: "USD",
@@ -77,28 +69,30 @@ func checkPrice() {
 				log.Print(err)
 			}
 
-			var text string
+			var textTemplate string
 			if coin.Quotes["USD"].PercentChange24H >= 0 {
-				text = phrases[23]
+				textTemplate = phrases[23]
 			} else {
-				text = phrases[24]
+				textTemplate = phrases[24]
 			}
 
-			text = fmt.Sprintf(text, float64WithSign(coin.Quotes["USD"].PercentChange24H),
+			text := fmt.Sprintf(textTemplate,
+				float64WithSign(coin.Quotes["USD"].PercentChange24H),
 				float64ToStringPrec3(coin.Quotes["USD"].Price))
-			keyboard := checkPriceKeyboard
+
 			textForUrl := strings.Replace(
 				strings.Replace(text, "*", "", -1), " ", " $", 1) +
 				" (via @XRPwatch)" + phrases[20]
-			myurl, err := url.Parse(config.TwitterShareURL)
+			myUrl, err := url.Parse(config.TwitterShareURL)
 			if err != nil {
 				log.Print(err)
 			}
 			parameters := url.Values{}
 			parameters.Add("text", textForUrl)
-			myurl.RawQuery = parameters.Encode()
-			urlstr := myurl.String()
-			keyboard.InlineKeyboard[0][1].URL = &urlstr
+			myUrl.RawQuery = parameters.Encode()
+			urlStr := myUrl.String()
+			keyboard := checkPriceKeyboard
+			keyboard.InlineKeyboard[0][1].URL = &urlStr
 
 			if time.Now().After(t.ChannelTime) {
 				sendMessage(config.ChannelId, text, nil)
@@ -111,11 +105,11 @@ func checkPrice() {
 					t.GroupTime.Add(time.Duration(config.GroupHours) * time.Hour)
 			}
 			if time.Now().After(t.UsersTime) {
-				go sendAllUsers(tgbotapi.MessageConfig{
-					Text: text,
-					BaseChat: tgbotapi.BaseChat{
-						ReplyMarkup: &keyboard},
-				})
+				userText := fmt.Sprintf(textTemplate,
+					float64WithSign(coin.Quotes["USD"].PercentChange24H),
+					"%v")
+				userText = strings.Replace(userText, "%", "%%", 1)
+				go convertAndSendAllUsers(userText, coin.Quotes["USD"].Price, keyboard)
 				t.UsersTime =
 					t.UsersTime.Add(time.Duration(config.UsersHours) * time.Hour)
 			}
@@ -146,7 +140,9 @@ func checkPeriodsPrice() {
 			log.Print(err)
 		}
 
-		text := "🚀 XRP on a new "
+		templateHigh := "🚀 XRP on a new *%v high* @ %v USD"
+		templateLow := "📉 XRP on a new *%v low* @ %v USD"
+		var textWOprice, textFinal string
 		//HIGHS CHECK
 		allTimeHigh := true
 		threeMonthsHigh := true
@@ -176,25 +172,24 @@ func checkPeriodsPrice() {
 					}
 					if weekHigh == true {
 						//post week
-						text += "7d"
+						textWOprice = fmt.Sprintf(templateHigh, "7d", "%v")
 					}
 				} else {
 					//post month
-					text += "30d"
+					textWOprice = fmt.Sprintf(templateHigh, "30d", "%v")
 				}
 			} else {
 				//post 3m
-				text += "3m"
+				textWOprice = fmt.Sprintf(templateHigh, "3m", "%v")
 			}
 		} else {
 			//post allTime
-			text += "all-time"
+			textWOprice = fmt.Sprintf(templateHigh, "all-timr", "%v")
 		}
-		text += fmt.Sprintf(" high @ %s USD", float64ToStringPrec3(price))
+		textFinal += fmt.Sprintf(textWOprice, float64ToStringPrec3(price))
 
 		if !allTimeHigh && !threeMonthsHigh && !monthHigh && !weekHigh {
 			//LOWS CHECK
-			text = "📉 XRP on a new "
 			threeMonthsLow := true
 			monthLow := true
 			weekLow := true
@@ -218,27 +213,29 @@ func checkPeriodsPrice() {
 					}
 					if weekLow == true {
 						//post week
-						text += "7d"
+						textWOprice = fmt.Sprintf(templateLow, "7d", "%v")
 					}
 				} else {
 					//post month
-					text += "30d"
+					textWOprice = fmt.Sprintf(templateLow, "30d", "%v")
 				}
 			} else {
 				//post 3m
-				text += "3m"
+				textWOprice = fmt.Sprintf(templateLow, "3m", "%v")
 			}
 			if weekLow == false {
-				text = ""
+				textFinal = ""
 			} else {
-				text += fmt.Sprintf(" low @ %s USD", float64ToStringPrec3(price))
+				textFinal += fmt.Sprintf(textWOprice, float64ToStringPrec3(price))
 			}
 		}
-		if text != "" {
-			sendMessage(config.ChannelId, text, nil)
-			sendMessage(config.ChatId, text, nil)
-			sendAllUsers(tgbotapi.MessageConfig{Text: text})
-			tweet(text)
+		if textFinal != "" {
+			sendMessage(config.ChannelId, textFinal, nil)
+			sendMessage(config.ChatId, textFinal, nil)
+			convertAndSendAllUsers(textWOprice, price, nil)
+			textFinal = strings.Replace(textFinal, "*", "", -1)
+			textFinal = strings.Replace(textFinal, " ", " $", 1)
+			tweet(textFinal)
 		}
 
 		if old.Highs.AllTime < price {
@@ -321,7 +318,7 @@ func weeklyRoundUp() {
 				float64ToString(market.BitcoinPercentageOfMarketCap))
 			sendMessage(config.ChannelId, text, nil)
 			sendMessage(config.ChatId, text, nil)
-			sendAllUsers(tgbotapi.MessageConfig{Text: text})
+			//sendAllUsers(tgbotapi.MessageConfig{Text: text})
 		}
 		time.Sleep(1 * time.Hour)
 	}
@@ -347,7 +344,7 @@ func checkPosts() {
 					msg := parsePost(&posts[i], config.ChatId)
 					bot.Send(msg)
 				} else {
-					sendAllUsers(parsePost(&posts[i], 0).(tgbotapi.MessageConfig))
+					sendAllUsersMessageConfig(parsePost(&posts[i], 0).(tgbotapi.MessageConfig))
 				}
 			}
 		}
@@ -398,7 +395,7 @@ func updateRates(){
 	for{
 		time.Sleep(24*time.Hour)
 		log.Print("Updating rates")
-		rates = make(map[string]float32)
+		rates = make(map[string]float64)
 		var symbols []string
 		for _, s := range currencies {
 			symbols = append(symbols, s)
@@ -410,7 +407,7 @@ func updateRates(){
 			log.Print(err)
 		}
 		for k, v := range resp{
-			rates[k] = v
+			rates[k] = float64(v)
 		}
 		log.Print(rates)
 	}

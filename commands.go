@@ -257,16 +257,21 @@ func stats(message *tgbotapi.Message) {
 
 func currency(message *tgbotapi.Message) {
 	fields := strings.Fields(message.Text)
+	currency := strings.ToUpper(fields[1])
 	if len(fields) < 2 {
 		sendMessage(message.Chat.ID, phrases[7], nil)
 		return
 	}
-	if !contains(currencies, strings.ToUpper(fields[1])) {
+	if !contains(currencies, currency) && currency != "EURO"{
 		sendMessage(message.Chat.ID, phrases[5], nil)
 		return
 	}
 	user := getUser(message.From.ID)
-	user.Currency = strings.ToUpper(fields[1])
+	if currency == "EURO"{
+		user.Currency = "EUR"
+	}else {
+		user.Currency = currency
+	}
 	db.Save(&user)
 	text := fmt.Sprintf(phrases[6], user.Currency)
 	sendMessage(message.Chat.ID, text, nil)

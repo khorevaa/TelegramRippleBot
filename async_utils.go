@@ -8,6 +8,9 @@ import (
 	cmc "github.com/coincircle/go-coinmarketcap"
 
 	"net/url"
+	"fmt"
+	"telegram-bot-api"
+	"strings"
 )
 
 var (
@@ -105,21 +108,37 @@ func tweet(text string) {
 	}
 }
 
-//func getUrlToTweet(text string) string {
-//	textForUrl := strings.Replace(
-//		strings.Replace(text, "*", "", -1), " ", " $", 1) +
-//		" (via @XRPwatch)" + phrases[20]
-//	myUrl := config.TwitterShareURL + "?text=" + textForUrl
-//	return myUrl
-//}
-//func generateLink(link chatbase.Link) string{
-//	base := "https://chatbase.com/r"
-//	params := url.Values{
-//		"api_key":  link.APIKey,
-//		"url":      link.URL,
-//		"platform": link.Platform,
+//func sendAllUsers(text string, keyboard interface{}){
+//	rows, _ := db.Table("users").Rows()
+//	for rows.Next() {
+//		var user User
+//		db.ScanRows(rows, &user)
+//		sendMessage(user.ID, text, keyboard)
 //	}
-//
-//	url := base + params
-//	return url
 //}
+
+func sendAllUsersMessageConfig(msg tgbotapi.MessageConfig){
+	rows, _ := db.Table("users").Rows()
+	for rows.Next() {
+		var user User
+		db.ScanRows(rows, &user)
+		msg.ChatID = user.ID
+		msg.ParseMode = tgbotapi.ModeMarkdown
+		_, err := bot.Send(msg)
+		if err != nil{
+			log.Print(err)
+		}
+	}
+}
+
+func convertAndSendAllUsers(template string,price float64, keyboard interface{}){
+	rows, _ := db.Table("users").Rows()
+	for rows.Next() {
+		var user User
+		db.ScanRows(rows, &user)
+		price *= rates[user.Currency]
+		text := fmt.Sprintf(template, float64ToStringPrec3(price))
+		text = strings.Replace(text, "USD", user.Currency, -1)
+		sendMessage(user.ID, text, keyboard)
+	}
+}

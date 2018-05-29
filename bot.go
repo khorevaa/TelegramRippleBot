@@ -58,7 +58,7 @@ var (
 		"CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR",
 		"JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PHP", "PLN", "RUB",
 		"SEK", "SGD", "THB", "TRY", "ZAR", "USD"}
-	rates = make(map[string]float32)
+	rates = make(map[string]float64)
 )
 
 func main() {
@@ -348,6 +348,6 @@ func initRates() {
 		log.Print(err)
 	}
 	for k, v := range resp {
-		rates[k] = v
+		rates[k] = float64(v)
 	}
 }

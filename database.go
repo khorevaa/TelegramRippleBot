@@ -59,13 +59,3 @@ func getUser(id int) User {
 	return u
 }
 
-func sendAllUsers(msg tgbotapi.MessageConfig){
-	rows, _ := db.Table("users").Rows()
-	for rows.Next() {
-		var user User
-		db.ScanRows(rows, &user)
-		msg.ChatID = user.ID
-		msg.ParseMode = tgbotapi.ModeMarkdown
-		bot.Send(msg)
-	}
-}

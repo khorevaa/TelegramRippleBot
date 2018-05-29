@@ -9,6 +9,7 @@ import (
 	"telegram-bot-api"
 	"time"
 	"github.com/coincircle/go-coinmarketcap/types"
+	"sort"
 )
 
 func getRippleStats(currency string) types.Ticker {
@@ -28,6 +29,12 @@ func checkAddress(a string) bool {
 		return false
 	}
 	if len(a) > 35 || len(a) < 25 {
+		return false
+	}
+	return true
+}
+func checkName(a string) bool {
+	if len(a) > 20 {
 		return false
 	}
 	return true
@@ -81,4 +88,13 @@ func rememberDestination(message *tgbotapi.Message) {
 	currPost = PendingPost{}
 	currState = ""
 	sendMessage(message.Chat.ID, phrases[19], nil)
+}
+
+func sortKeys(m map[string]float64) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

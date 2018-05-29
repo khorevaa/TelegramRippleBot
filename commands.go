@@ -36,6 +36,10 @@ func addWallet(message *tgbotapi.Message) {
 			sendMessage(message.Chat.ID, phrases[4], nil)
 			return
 		}
+		if !checkName(fields[2]) {
+			sendMessage(message.Chat.ID, phrases[29], nil)
+			return
+		}
 		addWalletDB(message)
 		var text string
 		text = fmt.Sprintf(phrases[1], fields[2])
@@ -75,8 +79,9 @@ func balance(message *tgbotapi.Message) {
 		balances[uw.Name] = bal
 	}
 	text := fmt.Sprintf(phrases[14], float64ToString(sum))
-	for name, bal := range balances {
-		text += fmt.Sprintf(phrases[15], name, float64ToString(bal))
+
+	for _, k := range sortKeys(balances) {
+		text += fmt.Sprintf(phrases[15], k, float64ToString(balances[k]))
 	}
 	price, err := cmc.Price(&cmc.PriceOptions{
 		Symbol:  "XRP",

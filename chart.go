@@ -48,7 +48,7 @@ func loadChart(period, currency string) {
 	drawCurrentValue()
 	drawName(currency + "-xrp")
 	drawDate()
-	dc.SavePNG("chart-" + period + currency + ".png")
+	dc.SavePNG("./charts/chart-" + period + currency + ".png")
 }
 
 func drawBackground() {

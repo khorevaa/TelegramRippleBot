@@ -181,7 +181,7 @@ func chart24h(message *tgbotapi.Message) {
 	if time.Now().Sub(cache24h.Time).Minutes() > 3 || cache24h.PhotoIds[user.Currency] == "" {
 		loadChart("thirtyMin", user.Currency)
 		cache24h.Time = time.Now()
-		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-thirtyMin" + user.Currency + ".png")
+		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "./charts/chart-thirtyMin" + user.Currency + ".png")
 		photo.Caption = "*XRP* (24h) | " + "*Price:* " +
 			float64ToStringPrec3(coin.Quotes[user.Currency].Price) + " " + user.Currency
 		photo.ParseMode = tgbotapi.ModeMarkdown
@@ -207,7 +207,7 @@ func chart30d(message *tgbotapi.Message) {
 	if time.Now().Sub(cache30d.Time).Minutes() > 3 || cache30d.PhotoIds[user.Currency] == "" {
 		loadChart("day", user.Currency)
 		cache30d.Time = time.Now()
-		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "chart-day" + user.Currency + ".png")
+		photo = tgbotapi.NewPhotoUpload(message.Chat.ID, "./charts/chart-day" + user.Currency + ".png")
 		photo.Caption = "*XRP* (30d) | " + "*Price:* " +
 			float64ToStringPrec3(coin.Quotes[user.Currency].Price) + " " + user.Currency
 		photo.ParseMode = tgbotapi.ModeMarkdown

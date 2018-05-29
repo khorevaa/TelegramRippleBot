@@ -44,7 +44,7 @@ func checkTwitter() {
 			for _, val := range searchResult {
 				text := val.User.Name+"("+val.User.ScreenName+"):\n"+val.FullText
 				sendMessage(config.ChannelId, text, nil)
-				sendMessage(config.ChatId, text, nil)
+				sendAllGroups(text)
 			}
 			if len(searchResult) > 0 {
 				sinceTwitter[val] = searchResult[0].Id
@@ -100,7 +100,7 @@ func checkPrice() {
 					t.ChannelTime.Add(time.Duration(config.ChannelHours) * time.Hour)
 			}
 			if time.Now().After(t.GroupTime) {
-				sendMessage(config.ChatId, text, nil)
+				sendAllGroups(text)
 				t.GroupTime =
 					t.GroupTime.Add(time.Duration(config.GroupHours) * time.Hour)
 			}
@@ -231,7 +231,7 @@ func checkPeriodsPrice() {
 		}
 		if textFinal != "" {
 			sendMessage(config.ChannelId, textFinal, nil)
-			sendMessage(config.ChatId, textFinal, nil)
+			sendAllGroups(textFinal)
 			convertAndSendAllUsers(textWOprice, price, nil)
 			textFinal = strings.Replace(textFinal, "*", "", -1)
 			textFinal = strings.Replace(textFinal, " ", " $", 1)
@@ -317,7 +317,7 @@ func weeklyRoundUp() {
 				float64ToString(share),
 				float64ToString(market.BitcoinPercentageOfMarketCap))
 			sendMessage(config.ChannelId, text, nil)
-			sendMessage(config.ChatId, text, nil)
+			//sendMessage(config.ChatId, text, nil)
 			//sendAllUsers(tgbotapi.MessageConfig{Text: text})
 		}
 		time.Sleep(1 * time.Hour)
@@ -341,8 +341,7 @@ func checkPosts() {
 					msg := parsePost(&posts[i], config.ChannelId)
 					bot.Send(msg)
 				} else if post.Destination == 2 {
-					msg := parsePost(&posts[i], config.ChatId)
-					bot.Send(msg)
+					sendAllGroupsMessageConfig(parsePost(&posts[i], 0).(tgbotapi.MessageConfig))
 				} else {
 					sendAllUsersMessageConfig(parsePost(&posts[i], 0).(tgbotapi.MessageConfig))
 				}

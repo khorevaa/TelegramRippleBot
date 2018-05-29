@@ -148,3 +148,28 @@ func convertAndSendAllUsers(template string,price float64, keyboard interface{})
 		sendMessage(user.ID, text, keyboard)
 	}
 }
+
+
+func sendAllGroupsMessageConfig(msg tgbotapi.MessageConfig){
+	rows, _ := db.Table("groups").Rows()
+	for rows.Next() {
+		var g Group
+		db.ScanRows(rows, &g)
+		msg.ChatID = g.ID
+		msg.ParseMode = tgbotapi.ModeMarkdown
+		_, err := bot.Send(msg)
+		if err != nil{
+			log.Print(err)
+		}
+	}
+}
+
+
+func sendAllGroups(text string){
+		rows, _ := db.Table("groups").Rows()
+		for rows.Next() {
+			var g Group
+			db.ScanRows(rows, &g)
+			sendMessage(g.ID, text, nil)
+		}
+}

@@ -8,7 +8,7 @@ import (
 
 type Configuration struct {
 	BotToken, MetricToken                                                              string
-	ChannelId, ChatId                                                                  int64
+	ChannelId                                                                  int64
 	BuySellXRP                                                                         string
 	TwitterAccounts                                                                    []string
 	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
@@ -59,7 +59,7 @@ type TxInfo struct {
 }
 
 type MetaInfo struct {
-	AffectedNodes []Node
+	AffectedNodes     []Node
 	TransactionResult string
 }
 
@@ -76,7 +76,7 @@ type FinalFields struct {
 }
 
 type CachedStats struct {
-	Time    time.Time
+	Time     time.Time
 	PhotoIds map[string]string
 }
 
@@ -135,4 +135,9 @@ func (t TimeForSending) anyTime() bool {
 		return true
 	}
 	return false
+}
+
+type Group struct {
+	ID   int64 `gorm:"primary_key"`
+	Name string
 }

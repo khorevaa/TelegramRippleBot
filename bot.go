@@ -141,6 +141,14 @@ func main() {
 				case "waitingForDestination":
 					rememberDestination(update.Message)
 				}
+			} else if update.Message.NewChatMembers != nil {
+				if (*update.Message.NewChatMembers)[0].ID == bot.Self.ID{
+					addGroup(update.Message.Chat)
+				}
+			} else if update.Message.LeftChatMember != nil {
+				if (*update.Message.LeftChatMember).ID == bot.Self.ID{
+					deleteGroup(update.Message.Chat)
+				}
 			}
 		} else if update.CallbackQuery != nil {
 			sendMetric(update.CallbackQuery.Message.From.ID, update.CallbackQuery.Data, update.CallbackQuery.Data)
@@ -294,7 +302,7 @@ func initDB() {
 	}
 	db.LogMode(true)
 	log.Print("Set LogMode")
-	db.AutoMigrate(&User{}, &Wallet{}, &UserWallet{})
+	db.AutoMigrate(&User{}, &Wallet{}, &UserWallet{}, &Group{})
 	log.Print("Migrated")
 }
 

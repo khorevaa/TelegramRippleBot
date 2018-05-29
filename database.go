@@ -59,3 +59,21 @@ func getUser(id int) User {
 	return u
 }
 
+
+func addGroup(chat *tgbotapi.Chat) {
+	var g Group
+	db.First(&g, "telegram_id = ?", chat.ID)
+	if g == (Group{}) {
+		g.ID = chat.ID
+		g.Name = chat.Title
+		db.Create(&g)
+	}
+}
+
+func deleteGroup(chat *tgbotapi.Chat) {
+	var g Group
+	db.First(&g, "telegram_id = ?", chat.ID)
+	if g != (Group{}) {
+		db.Delete(&g)
+	}
+}

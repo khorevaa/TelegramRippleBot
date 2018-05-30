@@ -17,31 +17,35 @@ var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
-func getTransactions(address string, timestamp string) []Transaction {
+func getTransactions(address string, timestamp string) (txsSuccess []Transaction) {
 	url := config.RippleUrlBase + address + config.RippleUrlParams + timestamp
 	log.Print(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Print(err)
+		return
 	}
 	defer resp.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Print(err)
+		return
 	}
 	//log.Print(string(bodyBytes))
 	var txs []Transaction
 	str := json.Get(bodyBytes, "transactions").ToString()
 	log.Print(str)
-	json.UnmarshalFromString(str, &txs)
-
-	var txsSuccess []Transaction
+	err = json.UnmarshalFromString(str, &txs)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 	for _, tx := range txs{
 		if tx.Meta.TransactionResult == "tesSUCCESS"{
 			txsSuccess = append(txsSuccess, tx)
 		}
 	}
-	return txsSuccess
+	return
 }
 
 func sendNotifications(txs []Transaction, wallet Wallet) {

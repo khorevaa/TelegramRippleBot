@@ -98,6 +98,9 @@ func main() {
 	for update := range updates {
 		if update.Message != nil {
 			log.Printf("[%s] %s ", update.Message.From.FirstName, update.Message.Text)
+			if update.Message.From != nil{
+				addUserIfAbsent(update.Message.From)
+			}
 			if update.Message.IsCommand() {
 				if int64(update.Message.From.ID) != update.Message.Chat.ID {
 					//disable commands for groups
@@ -150,6 +153,9 @@ func main() {
 				}
 			}
 		} else if update.CallbackQuery != nil {
+			if update.CallbackQuery.From != nil{
+				addUserIfAbsent(update.Message.From)
+			}
 			sendMetric(update.CallbackQuery.Message.From.ID, update.CallbackQuery.Data, update.CallbackQuery.Data)
 			m := update.CallbackQuery.Message
 			m.Text = update.CallbackQuery.Data

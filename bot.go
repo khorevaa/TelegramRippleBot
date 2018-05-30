@@ -14,7 +14,6 @@ import (
 	"github.com/fadion/gofixerio"
 	cmc "github.com/coincircle/go-coinmarketcap"
 	"github.com/coincircle/go-coinmarketcap/types"
-	"net/http"
 )
 
 var (
@@ -73,7 +72,16 @@ func main() {
 	initCache()
 	initListings()
 	initRates()
-	initBot()
+
+	var err error
+	bot, err = tgbotapi.NewBotAPI(config.BotToken)
+	if err != nil {
+		log.Print("ERROR: ")
+		log.Panic(err)
+	}
+
+	bot.Debug = false
+	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	go checkTransactions()
 	go checkTwitter()
@@ -83,12 +91,10 @@ func main() {
 	go checkPosts()
 	go updateRates()
 
-	updates := bot.ListenForWebhook("/" + config.BotToken)
-	go http.ListenAndServeTLS(config.ListenIP, config.CertPath, config.KeyPath, nil)
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
 
-	//u := tgbotapi.NewUpdate(0)
-	//u.Timeout = 60
-	//updates, err := bot.GetUpdatesChan(u)
+	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
 		if update.Message != nil {
@@ -353,24 +359,4 @@ func initRates() {
 		rates[k] = float64(v)
 	}
 	rates["USD"] = 1
-}
-
-
-func initBot() {
-	var err error
-	bot, err = tgbotapi.NewBotAPI(config.BotToken)
-	if err != nil {
-		log.Print(err)
-	}
-	bot.Debug = false
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-	setWebhook()
-}
-
-func setWebhook() {
-	_, err := bot.SetWebhook(tgbotapi.NewWebhookWithCert("https://"+config.ServerIP+"/"+config.BotToken, config.CertPath))
-	if err != nil {
-		log.Print(err)
-	}
-	log.Printf("Webhook is set")
 }

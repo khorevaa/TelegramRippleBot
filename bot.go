@@ -303,6 +303,8 @@ func initDB() {
 	db.LogMode(true)
 	log.Print("Set LogMode")
 	db.AutoMigrate(&User{}, &Wallet{}, &UserWallet{}, &Group{})
+	db.Exec("ALTER TABLE `users` MODIFY `first_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;")
+	db.Exec("ALTER TABLE `users` MODIFY `last_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;")
 	log.Print("Migrated")
 }
 

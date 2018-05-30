@@ -11,6 +11,7 @@ type Configuration struct {
 	MetricToken                                                                        string
 	ListenIP, ServerIP                                                                 string
 	KeyPath, CertPath                                                                  string
+	DbArgs                                                                             string
 	ChannelId                                                                          int64
 	BuySellXRP, SupportURL                                                             string
 	TwitterAccounts                                                                    []string

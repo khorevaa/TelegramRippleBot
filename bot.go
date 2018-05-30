@@ -6,7 +6,7 @@ import (
 	"os"
 	"io"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"time"
 	"github.com/ChimeraCoder/anaconda"
 	"net/url"
@@ -82,7 +82,6 @@ func main() {
 
 	bot.Debug = false
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-
 	go checkTransactions()
 	go checkTwitter()
 	go checkPrice()
@@ -293,7 +292,8 @@ func initKeyboard() {
 
 func initDB() {
 	var err error
-	db, err = gorm.Open("sqlite3", "data.db")
+	//db, err = gorm.Open("sqlite3", "data.db")
+	db, err = gorm.Open("mysql", config.DbArgs)
 	if err != nil {
 		log.Print("********** ERROR: ")
 		log.Panic("Failed to connect database")

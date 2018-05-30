@@ -7,9 +7,12 @@ import (
 )
 
 type Configuration struct {
-	BotToken, MetricToken                                                              string
-	ChannelId                                                                  int64
-	BuySellXRP                                                                         string
+	BotToken                                                                           string
+	MetricToken                                                                        string
+	ListenIP, ServerIP                                                                 string
+	KeyPath, CertPath                                                                  string
+	ChannelId                                                                          int64
+	BuySellXRP, SupportURL                                                             string
 	TwitterAccounts                                                                    []string
 	TwitterAccessToken, TwitterAccessSecret, TwitterConsumerKey, TwitterConsumerSecret string
 	RippleUrlBase                                                                      string
@@ -18,7 +21,7 @@ type Configuration struct {
 	CoinMarketCapListings                                                              string
 	AdminIds                                                                           []int64
 	ChannelHours, GroupHours, UsersHours, TwitterHours                                 int
-	TwitterShareURL, SupportURL                                                        string
+	TwitterShareURL                                                                    string
 }
 
 type User struct {

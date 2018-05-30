@@ -154,7 +154,7 @@ func main() {
 			}
 		} else if update.CallbackQuery != nil {
 			if update.CallbackQuery.From != nil{
-				addUserIfAbsent(update.Message.From)
+				addUserIfAbsent(update.CallbackQuery.From)
 			}
 			sendMetric(update.CallbackQuery.Message.From.ID, update.CallbackQuery.Data, update.CallbackQuery.Data)
 			m := update.CallbackQuery.Message

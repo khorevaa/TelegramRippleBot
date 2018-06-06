@@ -8,6 +8,7 @@ import (
 
 type Configuration struct {
 	BotToken                                                                           string
+	FixerKey                                                                           string
 	MetricToken                                                                        string
 	ListenIP, ServerIP                                                                 string
 	KeyPath, CertPath                                                                  string

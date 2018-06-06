@@ -11,7 +11,7 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"net/url"
 	"github.com/m90/go-chatbase"
-	"github.com/fadion/gofixerio"
+	"github.com/unkeep/gofixerio"
 	cmc "github.com/coincircle/go-coinmarketcap"
 	"github.com/coincircle/go-coinmarketcap/types"
 )
@@ -352,7 +352,8 @@ func initListings() {
 
 func initRates() {
 	fixer = fixerio.New()
-	fixer.Base("USD")
+	fixer.ApiKey(config.FixerKey)
+	fixer.Secure(false)
 	var symbols []string
 	for _, s := range currencies {
 		symbols = append(symbols, s)
@@ -363,8 +364,10 @@ func initRates() {
 	if err != nil {
 		log.Print(err)
 	}
+	usdRate := float64(1/resp["USD"])
 	for k, v := range resp {
-		rates[k] = float64(v)
+		rates[k] = float64(v) * usdRate
 	}
 	rates["USD"] = 1
+	rates["EUR"] = usdRate
 }

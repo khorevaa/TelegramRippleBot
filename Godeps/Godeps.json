@@ -47,6 +47,11 @@
 			"Rev": "bca2e7f09a178fd36b034107a00e2323bca6a82e"
 		},
 		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.3-31-g26471af",
+			"Rev": "26471af196a17ee75a22e6481b5a5897fb16b081"
+		},
+		{
 			"ImportPath": "github.com/golang/freetype/raster",
 			"Comment": "release-137-ge2365df",
 			"Rev": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
@@ -62,7 +67,7 @@
 			"Rev": "b1885a643b4977c9089d77eb07c0fd96591f94b8"
 		},
 		{
-			"ImportPath": "github.com/jinzhu/gorm/dialects/sqlite",
+			"ImportPath": "github.com/jinzhu/gorm/dialects/mysql",
 			"Comment": "v1.0-173-gb1885a6",
 			"Rev": "b1885a643b4977c9089d77eb07c0fd96591f94b8"
 		},
@@ -76,13 +81,8 @@
 			"Rev": "2ddf6d758266fcb080a4f9e054b9f292c85e6798"
 		},
 		{
-          "ImportPath": "github.com/m90/go-chatbase",
-          "Rev": "d8c7d06cff1d00cce40b7d4d7ef1fd72fd250698"
-        },
-      {
-			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Comment": "v1.2.0-119-g05548ff",
-			"Rev": "05548ff55570cdb9ac72ff4a25a3b5e77a6fb7e5"
+			"ImportPath": "github.com/m90/go-chatbase",
+			"Rev": "d8c7d06cff1d00cce40b7d4d7ef1fd72fd250698"
 		},
 		{
 			"ImportPath": "github.com/modern-go/concurrent",
@@ -98,6 +98,11 @@
 			"ImportPath": "github.com/technoweenie/multipartstreamer",
 			"Comment": "v1.0.1",
 			"Rev": "a90a01d73ae432e2611d178c18367fbaa13e0154"
+		},
+		{
+			"ImportPath": "github.com/unkeep/gofixerio",
+			"Comment": "1.0-4-gd12f277",
+			"Rev": "d12f277727e92d62d42abb3ffe67ba612132ece3"
 		},
 		{
 			"ImportPath": "golang.org/x/image/draw",
@@ -118,10 +123,6 @@
 		{
 			"ImportPath": "golang.org/x/image/math/fixed",
 			"Rev": "12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7"
-		},
-		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "b129b8e0fbeb39c8358e51a07ab6c50ad415e72e"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",

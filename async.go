@@ -405,9 +405,12 @@ func updateRates(){
 		if err != nil {
 			log.Print(err)
 		}
-		for k, v := range resp{
-			rates[k] = float64(v)
+		usdRate := float64(1/resp["USD"])
+		for k, v := range resp {
+			rates[k] = float64(v) * usdRate
 		}
+		rates["USD"] = 1
+		rates["EUR"] = usdRate
 		log.Print(rates)
 	}
 }

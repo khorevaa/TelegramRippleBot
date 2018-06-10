@@ -184,9 +184,9 @@ func checkPeriodsPrice() {
 			}
 		} else {
 			//post allTime
-			textWOprice = fmt.Sprintf(templateHigh, "all-timr", "%v")
+			textWOprice = fmt.Sprintf(templateHigh, "all-time", "%v")
 		}
-		textFinal += fmt.Sprintf(textWOprice, float64ToStringPrec3(price))
+		textFinal = fmt.Sprintf(textWOprice, float64ToStringPrec3(price))
 
 		if !allTimeHigh && !threeMonthsHigh && !monthHigh && !weekHigh {
 			//LOWS CHECK
@@ -226,7 +226,7 @@ func checkPeriodsPrice() {
 			if weekLow == false {
 				textFinal = ""
 			} else {
-				textFinal += fmt.Sprintf(textWOprice, float64ToStringPrec3(price))
+				textFinal = fmt.Sprintf(textWOprice, float64ToStringPrec3(price))
 			}
 		}
 		if textFinal != "" {
